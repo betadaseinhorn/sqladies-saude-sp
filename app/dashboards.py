@@ -16,6 +16,7 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 
+from app import alerts as A
 from app import db
 
 MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
@@ -177,6 +178,45 @@ def pop_col(p: dict) -> str:
     return f"pop_{p['ano']}" if p.get("ano") else "(pop_2024 + pop_2025) / 2.0"
 
 
+def _ok(alertas: list) -> list:
+    return [a for a in alertas if a]
+
+
+def _regiao(p: dict) -> dict:
+    """Indicadores de contexto do estado ou da DRS filtrada (base dos alertas)."""
+    m = db.df("SELECT * FROM res_municipio")
+    if p.get("drs"):
+        m = m[m["drs_num"] == int(p["drs"])]
+    na = len(db.anos())
+    grandes = m[m["pop"] >= 5000]
+    crit = (grandes["taxa_int_1k"].map(lambda v: A.nivel("taxa", v)) == "critico").sum()
+    return {"onde": nome_drs(p["drs"]).split(" - ")[0] if p.get("drs") else "estado",
+            "ocupacao": m["dias_occ"].sum() / na * 100 / (m["leitos_sus"].sum() * 365),
+            "leitos_10k": m["leitos_sus"].sum() * 10000 / m["pop"].sum(),
+            "pct_fora": m["fora_res"].sum() * 100 / m["int_res"].sum(),
+            "pct_mun_criticos": crit * 100 / max(len(grandes), 1)}
+
+
+def _alertas_regiao(p: dict, *chaves: str) -> list:
+    r = _regiao(p)
+    return [A.classificar(k, r[k], onde=r["onde"]) for k in chaves]
+
+
+def _pico(mensal: pd.DataFrame) -> float:
+    d = mensal.assign(k="x")[["k", "mes_inter", "n"]]
+    return float((_indice(d, "k").iloc[0].max() - 1) * 100)
+
+
+def _status_col(df: pd.DataFrame, chave: str, col: str, ref=None) -> pd.DataFrame:
+    return df.assign(situacao=[A.nivel(chave, v, ref) for v in df[col]])
+
+
+def _rotulo(alerta: dict | None, indicador: str) -> dict | None:
+    if alerta:
+        alerta["indicador"] = indicador
+    return alerta
+
+
 # ================================================================ builders ====
 def visao_geral(p: dict) -> dict:
     join, where, args, desc = filtro(p)
@@ -232,7 +272,13 @@ def visao_geral(p: dict) -> dict:
     if len(drs) > 1:
         insights.append(f"{drs.iloc[0]['drs_nome']} concentra {fmt_pct(drs.iloc[0]['n'] * 100 / n, 0)} "
                         "das internações do estado.")
-    return {"title": "Panorama das internações SUS", "subtitle": "Estado de São Paulo · SIH/SUS",
+    al = _alertas_regiao(p, "ocupacao", "leitos_10k", "pct_mun_criticos")
+    al.insert(1, A.classificar("pico_sazonal", _pico(mensal), onde="mês de pico"))
+    if p.get("drs"):
+        al += [A.classificar("taxa", n / na * 1000 / pop, onde="DRS"),
+               A.classificar("permanencia", tot["d"] / n, onde="DRS"),
+               A.classificar("mortalidade", tot["o"] * 100 / n, onde="DRS")]
+    return {"alertas": _ok(al), "title": "Panorama das internações SUS", "subtitle": "Estado de São Paulo · SIH/SUS",
             "filtros": desc, "kpis": kpis, "charts": charts, "insights": insights,
             "tables": []}
 
@@ -271,7 +317,9 @@ def custos(p: dict) -> dict:
         f"{medio.iloc[0]['cap_nome']} tem o maior custo médio ({fmt_brl(medio.iloc[0]['medio'])}), "
         f"{fmt_dec(medio.iloc[0]['medio'] / (tot / d['n'].sum()), 1)}× a média geral.",
     ]
-    return {"title": "Causas de internação que mais custam ao SUS", "subtitle": "Valores pagos (SIH/SUS)",
+    al = [A.classificar("permanencia", d["dp"].sum() / d["n"].sum(), onde="geral")]
+    al += _alertas_regiao(p, "ocupacao", "leitos_10k")
+    return {"alertas": _ok(al), "title": "Causas de internação que mais custam ao SUS", "subtitle": "Valores pagos (SIH/SUS)",
             "filtros": desc, "kpis": kpis, "charts": charts, "insights": insights,
             "tables": [table("Custos por capítulo da CID-10", d,
                              [("cap_nome", "Capítulo", "text"), ("v", "Valor total", "brl"),
@@ -331,7 +379,9 @@ def sazonal_estado(p: dict) -> dict:
         a0 = s[s["mes_inter"].str.startswith(anos[0])]["n"].sum()
         a1 = s[s["mes_inter"].str.startswith(anos[1])]["n"].sum()
         insights.append(f"Variação de {anos[0]} para {anos[1]}: {signed((a1 / a0 - 1) * 100, 1)}% nas internações.")
-    return {"title": "Como as internações variam ao longo do ano",
+    al = [A.classificar("pico_sazonal", float(dev[pico]), onde=MESES_LONGOS[pico - 1])]
+    al += _alertas_regiao(p, "ocupacao")
+    return {"alertas": _ok(al), "title": "Como as internações variam ao longo do ano",
             "subtitle": "Série mensal, índice sazonal e decomposição STL",
             "filtros": desc, "charts": charts, "insights": insights, "tables": [],
             "kpis": [kpi("Mês de pico", MESES_LONGOS[pico - 1].capitalize(), f"{signed(dev[pico], 0)}% vs. média"),
@@ -380,7 +430,10 @@ def sazonal_drs(p: dict) -> dict:
         f"{amp.index[-1]} é a mais estável ({fmt_dec(amp.iloc[-1], 0)} p.p.).",
         "Fevereiro, dezembro e janeiro são os meses de menor demanda em praticamente todas as regiões.",
     ]
-    return {"title": "Sazonalidade das internações por DRS",
+    top_pk = picos.sort_values("pico_pct", ascending=False).head(3)
+    al = [A.classificar("pico_sazonal", r["pico_pct"], onde=f"{r['drs'].split(' - ')[0]} ({r['pico']})")
+          for _, r in top_pk.iterrows()]
+    return {"alertas": _ok(al), "title": "Sazonalidade das internações por DRS",
             "subtitle": "17 Departamentos Regionais de Saúde", "filtros": desc,
             "kpis": [kpi("Pico mais frequente", moda.capitalize()),
                      kpi("Maior amplitude", amp.index[0].split(" - ")[1], fmt_dec(amp.iloc[0], 0) + " p.p."),
@@ -434,7 +487,8 @@ def sazonal_causas(p: dict) -> dict:
                 for k in top3]
     insights.append("Causas crônicas e obstétricas variam pouco ao longo do ano; doenças respiratórias e "
                     "infecciosas (como a dengue) concentram a sazonalidade.")
-    return {"title": "Causas de internação com maior sazonalidade",
+    al = [A.classificar("pico_sazonal", (idx.loc[k].max() - 1) * 100, onde=f"{k} ({picos[k]})") for k in top3]
+    return {"alertas": _ok(al), "title": "Causas de internação com maior sazonalidade",
             "subtitle": "Índice sazonal por capítulo da CID-10", "filtros": desc,
             "kpis": [kpi("Causa mais sazonal", amp.index[0], fmt_dec(amp.iloc[0], 0) + " p.p. de amplitude"),
                      kpi("Causa mais estável", amp.index[-1], fmt_dec(amp.iloc[-1], 0) + " p.p.")],
@@ -483,7 +537,10 @@ def sazonal_cap_regiao(p: dict) -> dict:
         f"{pk.iloc[-1]['drs']} o mais suave ({signed(pk.iloc[-1]['pico_pct'], 0)}%).",
         f"Mês de pico mais comum entre as DRS: {pk['pico'].mode().iloc[0]}.",
     ]
-    return {"title": f"Sazonalidade por DRS: {nome.lower()}",
+    al = [A.classificar("pico_sazonal", (i_est.max() - 1) * 100, onde=f"estado ({pmes})")]
+    al += [A.classificar("pico_sazonal", r["pico_pct"], onde=f"{r['drs'].split(' - ')[0]} ({r['pico']})")
+           for _, r in pk.head(2).iterrows()]
+    return {"alertas": _ok(al), "title": f"Sazonalidade por DRS: {nome.lower()}",
             "subtitle": "Índice sazonal por DRS", "filtros": desc + [f"CID: {nome}"],
             "kpis": [kpi("Pico estadual", pmes.capitalize(), f"{signed((i_est.max() - 1) * 100, 0)}% vs. média"),
                      kpi("Vale estadual", MESES_LONGOS[int(i_est.idxmin()) - 1].capitalize(),
@@ -544,7 +601,14 @@ def ranking_municipios(p: dict) -> dict:
         f"não onde a internação aconteceu.",
         f"Mediana entre municípios com {fmt_int(min_pop)}+ hab.: {fmt_dec(elig['taxa'].median(), 1)} por 1.000.",
     ]
-    return {"title": f"Os {top_n} municípios com mais internações por habitante",
+    elig = _status_col(elig, "taxa", "taxa")
+    crit = int((elig["situacao"] == "critico").sum())
+    al = [_rotulo(A.classificar("pct_mun_criticos", crit * 100 / max(len(elig), 1)),
+                  f"Municípios com taxa crítica · {crit} de {len(elig)}"),
+          A.classificar("taxa", top.iloc[0]["taxa"], onde=top.iloc[0]["nome"])]
+    if p.get("drs"):
+        al.insert(0, A.classificar("taxa", taxa_est, onde="DRS"))
+    return {"alertas": _ok(al), "title": f"Os {top_n} municípios com mais internações por habitante",
             "subtitle": "Taxa anual por 1.000 habitantes (pelo município de residência)",
             "filtros": desc, "charts": charts, "insights": insights,
             "kpis": [kpi("Taxa " + ref, fmt_dec(taxa_est, 1), "internações/1.000 hab./ano"),
@@ -554,7 +618,8 @@ def ranking_municipios(p: dict) -> dict:
                              [("nome", "Município", "text"), ("drs_nome", "DRS", "text"),
                               ("pop", "População", "int"), ("n_ano", "Internações/ano", "int"),
                               ("taxa", "Por 1.000 hab.", "dec1"), ("perm", "Permanência (dias)", "dec1"),
-                              ("medio", "Valor médio", "brl"), ("pct_fora", "% internados fora", "pct")])]}
+                              ("medio", "Valor médio", "brl"), ("pct_fora", "% internados fora", "pct"),
+                              ("situacao", "Situação", "status")])]}
 
 
 def _vline(x: float) -> dict:
@@ -615,7 +680,9 @@ def ranking_hospitais(p: dict) -> dict:
         f"{top.iloc[0]['nome']} ({top.iloc[0]['municipio']}) lidera com "
         f"{fmt_int(top.iloc[0]['n_ano'])} internações/ano.",
     ]
-    return {"title": "Hospitais que mais realizam internações", "subtitle": "Volume anual de internações SUS",
+    al = [A.classificar("ocupacao", r["ocupacao_est"], onde=_curto(r["nome"], 40))
+          for _, r in top.head(3).iterrows()]
+    return {"alertas": _ok(al), "title": "Hospitais que mais realizam internações", "subtitle": "Volume anual de internações SUS",
             "filtros": _desc_mun(p, desc), "charts": charts, "insights": insights,
             "kpis": [kpi("Hospitais com internações", fmt_int(len(d))),
                      kpi(f"Participação do top {top_n}", fmt_pct(share, 0)),
@@ -658,7 +725,11 @@ def ranking_permanencia(p: dict) -> dict:
         "Permanências longas costumam indicar hospitais especializados (psiquiatria, oncologia, "
         "reabilitação) ou pacientes mais graves, não necessariamente ineficiência.",
     ]
-    return {"title": "Hospitais com maior permanência média", "subtitle": "Dias de internação por paciente",
+    crit = int((elig["perm"].map(lambda v: A.nivel("permanencia", v)) == "critico").sum())
+    al = [A.classificar("permanencia", r["perm"], onde=_curto(r["nome"], 40)) for _, r in top.head(2).iterrows()]
+    al.append(_rotulo(A.classificar("pct_hosp_criticos", crit * 100 / max(len(elig), 1)),
+                      f"Hospitais com permanência crítica · {crit} de {len(elig)}"))
+    return {"alertas": _ok(al), "title": "Hospitais com maior permanência média", "subtitle": "Dias de internação por paciente",
             "filtros": _desc_mun(p, desc), "charts": charts, "insights": insights,
             "kpis": [kpi("Permanência média geral", fmt_dec(media, 1) + " dias"),
                      kpi("Maior permanência", _curto(top.iloc[0]["nome"], 30), fmt_dec(top.iloc[0]["perm"], 1) + " dias"),
@@ -697,7 +768,8 @@ def _perfil_mun(cod: int, p: dict) -> dict:
             "pct_urg": (t["u"] or 0) * 100 / n if n else None, "pct_idosos": (t["ido"] or 0) * 100 / n if n else None,
             "leitos_sus": r["leitos_sus"], "leitos_10k": r["leitos_sus_10k"], "ubs": r["ubs"],
             "ubs_10k": r["ubs_10k"], "hospitais": r["hospitais_sih"], "pct_atraidos": r["pct_atraidos"],
-            "int_occ_ano": r["int_occ_ano"], "mensal": mensal, "caps": caps, "faixa": faixa}
+            "int_occ_ano": r["int_occ_ano"], "ocupacao": r["ocupacao_est"],
+            "mensal": mensal, "caps": caps, "faixa": faixa}
 
 
 FAIXAS = ["0-4", "5-14", "15-29", "30-44", "45-59", "60-74", "75+"]
@@ -756,7 +828,12 @@ def comparar_municipios(p: dict) -> dict:
         f"{a['nome']} recebe {fmt_pct(a['pct_atraidos'], 0)} de pacientes de fora; "
         f"{b['nome']}, {fmt_pct(b['pct_atraidos'], 0)}.",
     ]
-    return {"title": "Comparação: " + " × ".join(nomes), "subtitle": "Indicadores pelo município de residência",
+    al = []
+    for x in perf:
+        al += [A.classificar("taxa", x["taxa"], onde=x["nome"]),
+               A.classificar("leitos_10k", x["leitos_10k"], onde=x["nome"]),
+               A.classificar("pct_fora", x["pct_fora"], onde=x["nome"])]
+    return {"alertas": _ok(al), "title": "Comparação: " + " × ".join(nomes), "subtitle": "Indicadores pelo município de residência",
             "filtros": desc, "kpis": [kpi(x["nome"], fmt_dec(x["taxa"], 1) + " /1.000",
                                           f"{fmt_int(x['n_ano'])} internações/ano · {x['drs'].split(' - ')[0]}")
                                       for x in perf],
@@ -803,7 +880,12 @@ def perfil_municipio(p: dict) -> dict:
         f"{fmt_pct(x['pct_fora'], 0)} dos residentes internados foram atendidos em outro município.",
         f"Principal causa: {caps.iloc[0]['cap_nome']} ({fmt_pct(caps.iloc[0]['n'] * 100 / x['n'], 0)}).",
     ]
-    return {"title": f"Panorama de {x['nome']}", "subtitle": f"{x['drs']} · Região de Saúde {x['regsaud']}",
+    al = [A.classificar("taxa", x["taxa"]), A.classificar("permanencia", x["perm"]),
+          A.classificar("mortalidade", x["mort"]), A.classificar("pct_fora", x["pct_fora"]),
+          A.classificar("leitos_10k", x["leitos_10k"])]
+    if x["leitos_sus"] and x["leitos_sus"] >= 10:
+        al.append(A.classificar("ocupacao", x["ocupacao"]))
+    return {"alertas": _ok(al), "title": f"Panorama de {x['nome']}", "subtitle": f"{x['drs']} · Região de Saúde {x['regsaud']}",
             "filtros": desc,
             "kpis": [kpi("População", fmt_compact(x["pop"])),
                      kpi("Internações/ano", fmt_compact(x["n_ano"]), "de residentes"),
@@ -852,7 +934,9 @@ def polos_atracao(p: dict) -> dict:
         "Polos regionais (sedes de DRS com hospitais de referência) atendem a demanda de municípios "
         "pequenos sem estrutura hospitalar.",
     ]
-    return {"title": "Polos que recebem pacientes de outras cidades", "subtitle": "Fluxo intermunicipal de internações",
+    al = [A.classificar("ocupacao", r["ocupacao_est"], onde=r["nome"]) for _, r in top.head(3).iterrows()]
+    al += _alertas_regiao(p, "pct_fora")
+    return {"alertas": _ok(al), "title": "Polos que recebem pacientes de outras cidades", "subtitle": "Fluxo intermunicipal de internações",
             "filtros": desc, "charts": charts, "insights": insights,
             "kpis": [kpi("Maior polo", top.iloc[0]["nome"], fmt_compact(top.iloc[0]["atraidos_ano"]) + " pacientes/ano"),
                      kpi("Internações fora do município de residência",
@@ -899,7 +983,13 @@ def capacidade_municipios(p: dict) -> dict:
         "Giro alto pode indicar sobrecarga ou perfil de internações curtas (ex.: maternidades e cirurgias "
         "de baixa complexidade); compare com a permanência média na tabela.",
     ]
-    return {"title": "Municípios com mais internações por leito SUS", "subtitle": "Pressão sobre a estrutura hospitalar",
+    elig = _status_col(elig, "int_por_leito", "int_por_leito")
+    crit = int((elig["situacao"] == "critico").sum())
+    al = [A.classificar("int_por_leito", top.iloc[0]["int_por_leito"], onde=top.iloc[0]["nome"]),
+          _rotulo(A.classificar("pct_mun_criticos", crit * 100 / max(len(elig), 1)),
+                  f"Municípios com giro de leito crítico · {crit} de {len(elig)}")]
+    al += _alertas_regiao(p, "ocupacao", "leitos_10k")
+    return {"alertas": _ok(al), "title": "Municípios com mais internações por leito SUS", "subtitle": "Pressão sobre a estrutura hospitalar",
             "filtros": desc, "charts": charts, "insights": insights,
             "kpis": [kpi("Internações por leito/ano", fmt_dec(est, 0), "média " + ref),
                      kpi("Leitos SUS", fmt_compact(m["leitos_sus"].sum()), "média mensal (CNES)"),
@@ -909,7 +999,8 @@ def capacidade_municipios(p: dict) -> dict:
                              [("nome", "Município", "text"), ("drs_nome", "DRS", "text"),
                               ("leitos_sus", "Leitos SUS", "int"), ("leitos_sus_10k", "Leitos/10 mil hab.", "dec1"),
                               ("int_occ_ano", "Internações/ano", "int"), ("int_por_leito", "Internações/leito", "dec1"),
-                              ("perm_media_occ", "Permanência (dias)", "dec1"), ("ocupacao_est", "Ocupação est. (%)", "dec1")])],
+                              ("perm_media_occ", "Permanência (dias)", "dec1"), ("ocupacao_est", "Ocupação est. (%)", "dec1"),
+                              ("situacao", "Situação", "status")])],
             "nota": "Ocupação estimada = dias de permanência ÷ (leitos SUS × 365). Aproximação: nem todo leito "
                     "SUS atende pacientes do SIH e a permanência é contada no mês de internação."}
 
@@ -947,7 +1038,12 @@ def ocupacao_hospitais(p: dict) -> dict:
         "Valores acima de 100% indicam que o hospital usa leitos não-SUS ou extras, ou cadastro de leitos "
         "desatualizado no CNES.",
     ]
-    return {"title": "Hospitais com maior ocupação estimada", "subtitle": "Dias de permanência ÷ capacidade de leitos SUS",
+    h = _status_col(h, "ocupacao", "ocupacao_est")
+    al = [_rotulo(A.classificar("pct_hosp_criticos", acima * 100 / max(len(h), 1)),
+                  f"Hospitais com ocupação crítica (>85%) · {acima} de {len(h)}"),
+          A.classificar("ocupacao", h["ocupacao_est"].median(), onde="mediana dos hospitais"),
+          A.classificar("ocupacao", top.iloc[0]["ocupacao_est"], onde=_curto(top.iloc[0]["nome"], 40))]
+    return {"alertas": _ok(al), "title": "Hospitais com maior ocupação estimada", "subtitle": "Dias de permanência ÷ capacidade de leitos SUS",
             "filtros": _desc_mun(p, desc), "charts": charts, "insights": insights,
             "kpis": [kpi("Acima de 85%", fmt_int(acima), f"de {fmt_int(len(h))} hospitais"),
                      kpi("Ocupação mediana", fmt_pct(h["ocupacao_est"].median(), 0))],
@@ -955,7 +1051,8 @@ def ocupacao_hospitais(p: dict) -> dict:
                              [("nome", "Hospital", "text"), ("municipio", "Município", "text"),
                               ("leitos_sus", "Leitos SUS", "int"), ("leitos_uti_sus", "Leitos UTI SUS", "int"),
                               ("internacoes_ano", "Internações/ano", "int"), ("perm_media", "Permanência (dias)", "dec1"),
-                              ("ocupacao_est", "Ocupação est. (%)", "dec1"), ("telefone", "Telefone", "text")])],
+                              ("ocupacao_est", "Ocupação est. (%)", "dec1"), ("situacao", "Situação", "status"),
+                              ("telefone", "Telefone", "text")])],
             "nota": "Estimativa a partir do SIH (dias de permanência) e do CNES-LT (leitos SUS médios no período)."}
 
 
@@ -1002,7 +1099,11 @@ def capacidade_drs(p: dict) -> dict:
         f"{oc.iloc[0]['drs_nome']} tem a maior ocupação estimada ({fmt_pct(oc.iloc[0]['ocup'], 0)}).",
         "Cobertura > 100% (tabela) = a DRS interna mais pacientes do que gera: recebe gente de outras regiões.",
     ]
-    return {"title": "Estrutura hospitalar por DRS", "subtitle": "Leitos, UBS, ocupação e cobertura", "filtros": [],
+    g = _status_col(g, "ocupacao", "ocup")
+    al = _alertas_regiao({}, "ocupacao", "leitos_10k")
+    al += [A.classificar("ocupacao", oc.iloc[0]["ocup"], onde=oc.iloc[0]["drs_nome"].split(" - ")[0]),
+           A.classificar("leitos_10k", l10.iloc[-1]["leitos_10k"], onde=l10.iloc[-1]["drs_nome"].split(" - ")[0])]
+    return {"alertas": _ok(al), "title": "Estrutura hospitalar por DRS", "subtitle": "Leitos, UBS, ocupação e cobertura", "filtros": [],
             "kpis": [kpi("Leitos SUS/10 mil hab.", fmt_dec(est_l10, 1), "estado"),
                      kpi("Leitos de UTI SUS/10 mil hab.", fmt_dec(g["uti"].sum() * 10000 / g["pop"].sum(), 2)),
                      kpi("UBS/10 mil hab.", fmt_dec(g["ubs"].sum() * 10000 / g["pop"].sum(), 2)),
@@ -1013,7 +1114,8 @@ def capacidade_drs(p: dict) -> dict:
                               ("leitos", "Leitos SUS", "int"), ("leitos_10k", "Leitos/10 mil", "dec1"),
                               ("uti_10k", "UTI/10 mil", "dec2"), ("ubs_10k", "UBS/10 mil", "dec2"),
                               ("taxa", "Internações/1.000 hab.", "dec1"), ("perm", "Permanência (dias)", "dec1"),
-                              ("ocup", "Ocupação est. (%)", "dec1"), ("cobertura", "Cobertura (%)", "dec1")])]}
+                              ("ocup", "Ocupação est. (%)", "dec1"), ("cobertura", "Cobertura (%)", "dec1"),
+                              ("situacao", "Situação", "status")])]}
 
 
 # ------------------------------------------------------- padrões e fatores ---
@@ -1059,7 +1161,8 @@ def ubs_internacoes(p: dict) -> dict:
         f"Quintil com mais UBS: taxa mediana {fmt_dec(q.iloc[-1]['taxa'], 1)} vs. {fmt_dec(q.iloc[0]['taxa'], 1)} "
         "no quintil com menos.",
     ]
-    return {"title": "UBS por habitante e internações", "subtitle": "Atenção primária × demanda hospitalar",
+    al = _alertas_regiao(p, "pct_mun_criticos", "pct_fora", "leitos_10k")
+    return {"alertas": _ok(al), "title": "UBS por habitante e internações", "subtitle": "Atenção primária × demanda hospitalar",
             "filtros": desc, "charts": charts, "insights": insights,
             "kpis": [kpi("Correlação (Spearman)", fmt_dec(rho, 2), "p < 0,001" if pval < 0.001 else f"p = {fmt_dec(pval, 3)}"),
                      kpi("Municípios", fmt_int(len(m)), "com 5.000+ hab."),
@@ -1106,7 +1209,12 @@ def clusters(p: dict) -> dict:
     insights = [f"Grupo {int(r['cluster'])} ({int(r['n_municipios'])} municípios, {fmt_compact(r['populacao'])} hab.): "
                 f"{r['nome']} — taxa média de {fmt_dec(r['taxa_int_1k'], 1)} internações/1.000 hab."
                 for _, r in perf.iterrows()]
-    return {"title": "Grupos de municípios com perfis de demanda parecidos",
+    al = []
+    for _, r in perf.iterrows():
+        g = f"Grupo {int(r['cluster'])}"
+        al += [A.classificar("taxa", r["taxa_int_1k"], onde=g), A.classificar("pct_fora", r["pct_fora"], onde=g),
+               A.classificar("leitos_10k", r["leitos_sus_10k"], onde=g)]
+    return {"alertas": _ok(al), "title": "Grupos de municípios com perfis de demanda parecidos",
             "subtitle": f"K-means com {int(meta['k'])} grupos sobre 10 indicadores padronizados", "filtros": [],
             "kpis": [kpi(f"Grupo {int(r['cluster'])}", f"{int(r['n_municipios'])} municípios", r["nome"])
                      for _, r in perf.iterrows()],
@@ -1153,7 +1261,8 @@ def fatores(p: dict) -> dict:
                     "(5.000+ hab.). É uma associação: não prova causa.")
     insights.append("Hipótese: a associação positiva com leitos e UBS pode indicar demanda reprimida onde "
                     "há pouca estrutura (a população interna menos quando o acesso é difícil).")
-    return {"title": "Fatores associados ao aumento da demanda",
+    al = _alertas_regiao({}, "pct_mun_criticos", "leitos_10k", "ocupacao")
+    return {"alertas": _ok(al), "title": "Fatores associados ao aumento da demanda",
             "subtitle": "Taxa de internação por 1.000 hab. (município de residência)", "filtros": [],
             "kpis": [kpi("R² do modelo", fmt_dec(r2, 2), "regressão ponderada pela população"),
                      kpi("Municípios", fmt_int(n), "com 5.000+ hab."),
@@ -1186,6 +1295,8 @@ BUILDERS: dict[str, Callable[[dict], dict]] = {
 
 def build(question_id: str, params: dict) -> dict:
     out = BUILDERS[question_id](params)
+    out.setdefault("alertas", [])
+    out["status_geral"] = A.pior(out["alertas"])
     out.setdefault("nota", "")
     out.setdefault("tables", [])
     return out
