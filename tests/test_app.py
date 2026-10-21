@@ -1,0 +1,132 @@
+"""Testes do matcher, dos builders e da API (precisam do banco data/sqladies.db)."""
+import json
+
+import pytest
+from fastapi.testclient import TestClient
+
+from app import dashboards
+from app.main import app
+from app.matcher import extrair, match
+from app.questions import CATALOGO
+
+client = TestClient(app)
+
+
+@pytest.mark.parametrize("q", CATALOGO, ids=lambda q: q.id)
+def test_catalogo_casa_consigo_mesmo(q):
+    m = match(q.texto)
+    assert m.question is not None and m.question.id == q.id
+
+
+@pytest.mark.parametrize("texto,esperado", [
+    ("compare Santos e Guarujá", "comparar_municipios"),
+    ("quais meses têm mais internações?", "sazonal_estado"),
+    ("top 10 hospitais da DRS VII", "ranking_hospitais"),
+    ("hospitais de campinas", "ranking_hospitais"),
+    ("quais hospitais ficam mais lotados", "ocupacao_hospitais"),
+    ("quanto custa cada doença", "custos"),
+    ("doenças respiratórias por DRS", "sazonal_cap_regiao"),
+    ("Mostre o panorama de internações de São Paulo", "perfil_municipio"),
+    ("relação entre ubs e internações", "ubs_internacoes"),
+])
+def test_variacoes(texto, esperado):
+    m = match(texto)
+    assert m.question is not None and m.question.id == esperado
+
+
+def test_sem_correspondencia_sugere():
+    m = match("bolo de chocolate")
+    assert m.question is None and len(m.sugestoes) == 3
+
+
+def test_extrai_entidades():
+    p, _ = extrair("top 10 municípios da DRS de Bauru em 2025 com doenças respiratórias")
+    assert p["drs"] == 6 and p["ano"] == 2025 and p["top_n"] == 10 and p["cap_cid"] == "X"
+    p, _ = extrair("compare Santos e Guarujá")
+    assert p["municipios"] == [354850, 351870]
+    p, _ = extrair("qual o panorama geral do estado de São Paulo?")
+    assert "municipios" not in p
+
+
+@pytest.mark.parametrize("q", CATALOGO, ids=lambda q: q.id)
+def test_builders_retornam_dashboard(q):
+    d = dashboards.build(q.id, dict(q.exemplo_params))
+    assert d["title"] and d["charts"] and d["insights"]
+    for c in d["charts"]:
+        assert c["traces"], c["title"]
+    json.dumps(d, default=float)
+
+
+@pytest.mark.parametrize("params", [{"ano": 2025}, {"drs": 7}, {"cap_cid": "X"}, {"municipios": [350950]}])
+def test_builders_com_filtros(params):
+    for q in CATALOGO:
+        dashboards.build(q.id, {**q.exemplo_params, **params})
+
+
+def test_api():
+    assert client.get("/api/health").json()["ok"]
+    assert len(client.get("/api/questions").json()["categorias"]) == 5
+    r = client.post("/api/ask", json={"text": "hospitais de Campinas em 2025"}).json()
+    assert r["matched"] and r["question_id"] == "ranking_hospitais" and r["params"]["ano"] == 2025
+    r = client.post("/api/ask", json={"text": "xyz", "question_id": "fatores"}).json()
+    assert r["question_id"] == "fatores"
+    assert client.post("/api/ask", json={"text": ""}).status_code == 400
+
+
+# ------------------------------------------------------------ alertas e SQL --
+from app import alerts as A  # noqa: E402
+from app.sql_oracle import oracle_sql  # noqa: E402
+
+FILTROS = [{}, {"ano": 2025}, {"drs": 7}, {"cap_cid": "X"}, {"municipios": [350950, 354340]}]
+
+
+@pytest.mark.parametrize("q", CATALOGO, ids=lambda q: q.id)
+def test_alertas_em_todo_dashboard(q):
+    d = dashboards.build(q.id, dict(q.exemplo_params))
+    assert d["alertas"], q.id
+    assert d["status_geral"] in A.NIVEIS
+    for a in d["alertas"]:
+        assert a["nivel"] in A.NIVEIS and a["rotulo"] and a["indicador"] and a["valor"]
+    assert d["status_geral"] == A.pior(d["alertas"])
+
+
+def test_limiares_de_borda():
+    assert A.nivel("ocupacao", 75) == "aceitavel"
+    assert A.nivel("ocupacao", 75.1) == "alerta"
+    assert A.nivel("ocupacao", 85) == "alerta"
+    assert A.nivel("ocupacao", 85.1) == "critico"
+    assert A.nivel("leitos_10k", 15) == "aceitavel"
+    assert A.nivel("leitos_10k", 12) == "alerta"
+    assert A.nivel("leitos_10k", 9.9) == "critico"
+    assert A.nivel("taxa", 110, ref=100) == "aceitavel"
+    assert A.nivel("taxa", 125, ref=100) == "alerta"
+    assert A.nivel("taxa", 131, ref=100) == "critico"
+    assert A.nivel("ocupacao", None) is None
+    assert A.pior([{"nivel": "aceitavel"}, {"nivel": "critico"}, {"nivel": "alerta"}]) == "critico"
+
+
+@pytest.mark.parametrize("q", CATALOGO, ids=lambda q: q.id)
+def test_sql_oracle(q):
+    for f in FILTROS:
+        blocos = oracle_sql(q.id, {**q.exemplo_params, **f})
+        assert blocos
+        for b in blocos:
+            sql = b["sql"]
+            assert "adaptação demonstrativa do projeto entregue à Oracle" in sql
+            assert "SELECT" in sql and "LIMIT" not in sql
+            assert sql.rstrip().endswith(";")
+
+
+def test_sql_oracle_ignora_valores_inseguros():
+    sql = " ".join(b["sql"] for b in oracle_sql("ranking_hospitais",
+                                                 {"ano": "2025; DROP TABLE x", "cap_cid": "X' OR '1'='1",
+                                                  "carater": "qualquer", "municipios": ["1 OR 1=1", 350950]}))
+    assert "DROP" not in sql and "OR '1'" not in sql and "qualquer" not in sql
+    assert "350950" in sql
+
+
+def test_api_inclui_alertas_e_sql():
+    r = client.post("/api/ask", json={"text": "Quais hospitais têm a maior ocupação estimada de leitos?"}).json()
+    d = r["dashboard"]
+    assert d["alertas"] and d["sql"] and d["status_geral"] in A.NIVEIS
+    assert any(c["fmt"] == "status" for t in d["tables"] for c in t["columns"])
