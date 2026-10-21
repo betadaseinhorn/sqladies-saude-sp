@@ -61,7 +61,8 @@
 }
 
 * { box-sizing: border-box; }
-html, body { height: 100%; margin: 0; }
+html { height: 100%; }
+body { min-height: 100%; margin: 0; }
 body { background: var(--page); color: var(--text); font: 15px/1.5 var(--font); -webkit-font-smoothing: antialiased;
   display: flex; flex-direction: column; }
 button, textarea { font: inherit; color: inherit; }

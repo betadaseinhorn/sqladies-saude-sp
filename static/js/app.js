@@ -18,9 +18,6 @@
     critico: { rotulo: "Crítico", icone: "✕" },
   };
   const ORDEM_NIVEL = { aceitavel: 0, alerta: 1, critico: 2 };
-  // categorias cujas abas têm a caixa "fazer outra pergunta" no fim (em teste: só Visão geral)
-  const CATS_COM_CAIXA = ["Visão geral"];
-  const CATEGORIA = new Map(); // id da pergunta -> categoria
 
   const abas = new Map(); // id -> {id, text, qid, tab, panel, charts[], drawn, seg[], niveis[], caixa}
   let ativa = "inicio";
@@ -380,11 +377,8 @@
     a.charts = [];
     a.niveis = [res.dashboard.status_geral];
     a.panel.replaceChildren(montarDash(a, res.dashboard, a.text));
-    a.caixa = null;
-    if (CATS_COM_CAIXA.includes(CATEGORIA.get(a.qid))) {
-      a.caixa = caixaNaAba(a, res.dashboard.seguintes || []);
-      a.panel.append(a.caixa);
-    }
+    a.caixa = caixaNaAba(a, res.dashboard.seguintes || []);
+    a.panel.append(a.caixa);
     a.drawn = false;
     if (ativa === a.id) desenharAba(a);
   }
@@ -634,7 +628,6 @@
       const qs = await fetch("/api/questions").then((r) => r.json());
       const cat = $("#catalogo");
       for (const c of qs.categorias) {
-        for (const q of c.perguntas) CATEGORIA.set(q.id, c.nome);
         cat.append(el("div", { class: "cat" }, el("h3", { text: c.nome }),
           el("div", { class: "chips" }, c.perguntas.map(chip))));
       }
