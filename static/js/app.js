@@ -19,7 +19,8 @@
   };
   const ORDEM_NIVEL = { aceitavel: 0, alerta: 1, critico: 2 };
 
-  const abas = new Map(); // id -> {id, text, qid, tab, panel, charts[], drawn, seg[], niveis[], caixa}
+  // id -> {id, text, qid, tab, panel, lista, nav, caixa, drawn, turnos[{text, qid, params, el, dash, charts[], nivel}]}
+  const abas = new Map();
   let ativa = "inicio";
   let seq = 0;
   let pendingId = null; // id da pergunta escolhida num chip (enquanto o texto não for editado)
@@ -157,10 +158,13 @@
     Plotly.react(div, traces, layout, { displayModeBar: false, responsive: true });
   }
 
+  const graficos = (a) => a.turnos.flatMap((t) => t.charts);
+
   function desenharAba(a) {
-    if (!a || !a.charts.length) return;
-    if (a.drawn) { a.charts.forEach(([div]) => Plotly.Plots.resize(div)); return; }
-    a.charts.forEach(([div, spec]) => drawChart(div, spec));
+    if (!a) return;
+    const cs = graficos(a);
+    if (a.drawn) { cs.forEach(([div]) => Plotly.Plots.resize(div)); return; }
+    cs.forEach(([div, spec]) => drawChart(div, spec));
     a.drawn = true;
   }
 
@@ -311,13 +315,12 @@
   }
 
   // ------------------------------------------------------------ dashboard ---
-  function montarDash(a, d, texto) {
+  function montarDash(t, d) {
     const root = el("div", { class: "dash" });
     const tags = (d.filtros || []).map((f) => el("span", { class: "tag", text: f }));
     root.append(el("div", { class: "dash-head" },
       el("div", {}, el("h2", { text: d.title }), el("div", { class: "dash-sub", text: d.subtitle || "" }),
-        tags.length ? el("div", { class: "tags" }, tags) : null),
-      el("div", { class: "match-info", text: `Sua pergunta: “${texto}”` })));
+        tags.length ? el("div", { class: "tags" }, tags) : null)));
 
     if (d.kpis && d.kpis.length) {
       root.append(el("div", { class: "kpis" }, d.kpis.map((k) => el("div", { class: "kpi" },
@@ -361,7 +364,7 @@
       const plot = el("div", { class: "plot", role: "img", "aria-label": c.title });
       charts.append(el("div", { class: "card" + (c.wide ? " wide" : "") },
         el("h4", { text: c.title }), c.subtitle ? el("p", { class: "card-sub", text: c.subtitle }) : null, plot));
-      a.charts.push([plot, c]);
+      t.charts.push([plot, c]);
     }
     root.append(charts);
     for (const t of d.tables || []) if (t.rows && t.rows.length) root.append(buildTable(t));
@@ -373,29 +376,67 @@
     return root;
   }
 
-  function renderDashboard(a, res) {
-    a.charts = [];
-    a.niveis = [res.dashboard.status_geral];
-    a.panel.replaceChildren(montarDash(a, res.dashboard, a.text));
-    a.caixa = caixaNaAba(a, res.dashboard.seguintes || []);
-    a.panel.append(a.caixa);
-    a.drawn = false;
-    if (ativa === a.id) desenharAba(a);
+  // --------------------------------------------------- conversa na aba ---
+  // Cada pergunta da aba é um "turno": balão com a pergunta + o dashboard que responde a ela.
+  const suave = () => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth");
+
+  function montarAba(a) {
+    a.nav = el("nav", { class: "turnos-nav", "aria-label": "Perguntas desta aba", hidden: "" });
+    a.lista = el("div", { class: "turnos" });
+    a.observer = new IntersectionObserver((entradas) => {
+      for (const e of entradas) if (e.isIntersecting) marcarTurno(a, e.target.dataset.n);
+    }, { rootMargin: "-120px 0px -65% 0px" });
+    a.panel.replaceChildren(a.nav, a.lista);
   }
 
-  // anexa o dashboard de uma pergunta feita dentro da aba, abaixo dos anteriores
-  function anexarDash(a, res, texto, rolar) {
-    const d = res.dashboard;
-    const n0 = a.charts.length;
-    const sep = el("div", { class: "dash-sep" }, el("span", { text: `Próxima pergunta: “${texto}”` }));
+  function marcarTurno(a, n) {
+    a.nav.querySelectorAll(".turno-pill").forEach((b) => {
+      if (b.dataset.n === n) {
+        b.setAttribute("aria-current", "true");
+        b.scrollIntoView({ block: "nearest", inline: "nearest" });
+      } else b.removeAttribute("aria-current");
+    });
+  }
+
+  function atualizarNav(a) {
+    a.nav.hidden = a.turnos.length < 2;
+    a.nav.replaceChildren(el("span", { class: "turnos-nav-label", text: "Perguntas:" }),
+      ...a.turnos.map((t, i) => el("button", {
+        type: "button", class: "turno-pill", "data-n": String(i + 1), title: t.text,
+        onclick: () => t.el.scrollIntoView({ behavior: suave(), block: "start" }),
+      }, el("span", { class: "turno-pill-n", text: String(i + 1) }), el("span", { class: "turno-pill-txt", text: t.text }))));
+  }
+
+  function atualizarStatus(a) {
+    const nv = a.turnos.map((t) => t.nivel).filter(Boolean);
+    setStatus(a, nv.length ? nv.reduce((x, y) => (ORDEM_NIVEL[y] > ORDEM_NIVEL[x] ? y : x)) : null);
+  }
+
+  // acrescenta um turno no fim da aba (balão + dashboard) e move a caixa de pergunta para depois dele
+  function adicionarTurno(a, t, res, rolar) {
+    const n = a.turnos.length + 1;
+    t.charts = [];
+    t.nivel = res.dashboard.status_geral;
+    t.qid = res.question_id;
+    t.params = res.params || {};
+    t.dash = montarDash(t, res.dashboard);
+    t.el = el("section", { class: "turno", "data-n": String(n), "aria-label": `Pergunta ${n}` },
+      el("div", { class: "balao-linha" }, el("div", { class: "balao" },
+        el("span", { class: "balao-quem", text: `Você · pergunta ${n}` }), el("p", { text: t.text }))),
+      t.dash);
+    a.turnos.push(t);
+    a.lista.append(t.el);
+    a.observer.observe(t.el);
     if (a.caixa) a.caixa.remove();
-    a.panel.append(sep, montarDash(a, d, texto));
-    a.caixa = caixaNaAba(a, d.seguintes || []);
+    a.caixa = caixaNaAba(a, res.dashboard.seguintes || []);
     a.panel.append(a.caixa);
-    a.niveis.push(d.status_geral);
-    setStatus(a, a.niveis.reduce((x, y) => (ORDEM_NIVEL[y] > ORDEM_NIVEL[x] ? y : x)));
-    if (ativa === a.id && a.drawn) a.charts.slice(n0).forEach(([div, spec]) => drawChart(div, spec));
-    if (rolar) sep.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    atualizarNav(a);
+    atualizarStatus(a);
+    if (ativa === a.id) {
+      if (a.drawn) t.charts.forEach(([div, spec]) => drawChart(div, spec));
+      else desenharAba(a);
+    }
+    if (rolar) t.el.scrollIntoView({ behavior: suave(), block: "start" });
   }
 
   // caixa "fazer outra pergunta" no fim da aba, com 2–3 sugestões de continuação
@@ -430,8 +471,8 @@
             el("div", { class: "chips" }, res.sugestoes.map(sug)));
           return;
         }
-        a.seg.push({ text: texto, qid: res.question_id });
-        anexarDash(a, res, texto, true);
+        ta.value = "";
+        adicionarTurno(a, { text: texto }, res, true);
         salvar();
       } catch (err) {
         fb.replaceChildren(el("p", { class: "erro", text: err.message }));
@@ -451,7 +492,10 @@
   // ---------------------------------------------------------------- abas ---
   function salvar() {
     try {
-      const lista = [...abas.values()].map(({ text, qid, seg }) => ({ text, qid, seg }));
+      const lista = [...abas.values()].map((a) => ({
+        text: a.text, qid: a.qid,
+        turnos: (a.turnos.length ? a.turnos : a.pendentes || []).map(({ text, qid, params }) => ({ text, qid, params })),
+      }));
       localStorage.setItem(STORE, JSON.stringify({ abas: lista, ativa: ativa === "inicio" ? -1 : [...abas.keys()].indexOf(ativa) }));
     } catch (e) { /* ok */ }
   }
@@ -477,7 +521,8 @@
     if (!a) return;
     const ids = [...abas.keys()];
     const pos = ids.indexOf(id);
-    a.charts.forEach(([div]) => Plotly.purge(div));
+    graficos(a).forEach(([div]) => Plotly.purge(div));
+    if (a.observer) a.observer.disconnect();
     a.tab.remove();
     a.panel.remove();
     abas.delete(id);
@@ -491,7 +536,8 @@
       : el("span", { class: `dot ${estado ? "n-" + estado : ""}`, title: NIVEL[estado] ? `Situação: ${NIVEL[estado].rotulo}` : "" }));
   }
 
-  function novaAba(text, qid, seg = []) {
+  // pendentes: turnos a montar (a 1ª pergunta e, ao reabrir, as feitas dentro da aba)
+  function novaAba(text, qid, pendentes = [{ text, qid }]) {
     const id = `aba-${++seq}`;
     const panel = el("section", { class: "panel", id: `panel-${id}`, role: "tabpanel", "aria-labelledby": `tab-${id}`, hidden: "" });
     const close = el("span", { class: "tab-close", role: "button", "aria-label": `Fechar aba: ${text}`, title: "Fechar aba" },
@@ -508,7 +554,7 @@
     tab.addEventListener("auxclick", (e) => { if (e.button === 1) { e.preventDefault(); fechar(id); } });
     tabsEl.append(tab);
     panelsEl.append(panel);
-    const a = { id, text, qid, tab, panel, charts: [], drawn: false, seg, niveis: [], caixa: null };
+    const a = { id, text, qid, tab, panel, turnos: [], pendentes, drawn: false, caixa: null };
     abas.set(id, a);
     return a;
   }
@@ -516,21 +562,21 @@
   async function carregar(a, preRes) {
     setStatus(a, "carregando");
     a.panel.replaceChildren(el("div", { class: "loading" }, el("div", { class: "spinner" }), "Gerando dashboard…"));
+    const pend = a.pendentes;
     try {
-      const res = preRes || await perguntar(a.text, a.qid);
+      const res = preRes || await perguntar(pend[0].text, pend[0].qid, pend[0].params);
       if (res.erro || !res.matched) throw new Error(res.erro || "Pergunta não reconhecida.");
       a.qid = res.question_id;
-      renderDashboard(a, res);
-      setStatus(a, res.dashboard.status_geral);
+      montarAba(a);
+      adicionarTurno(a, { text: pend[0].text }, res, false);
       // perguntas feitas dentro da aba na visita anterior
-      const seg = a.seg;
-      a.seg = [];
-      for (const s of seg) {
+      for (const p of pend.slice(1)) {
         try {
-          const r = await perguntar(s.text, s.qid);
-          if (r.matched && !r.erro) { a.seg.push(s); anexarDash(a, r, s.text, false); }
+          const r = await perguntar(p.text, p.qid, p.params);
+          if (r.matched && !r.erro) adicionarTurno(a, { text: p.text }, r, false);
         } catch (e) { /* ignora a pergunta que falhou */ }
       }
+      a.pendentes = null;
       salvar();
     } catch (e) {
       setStatus(a, null);
@@ -538,10 +584,10 @@
     }
   }
 
-  async function perguntar(text, qid) {
+  async function perguntar(text, qid, params) {
     const r = await fetch("/api/ask", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, question_id: qid || null }),
+      body: JSON.stringify({ text, question_id: qid || null, params: qid && params ? params : null }),
     });
     if (!r.ok) throw new Error(`Erro do servidor (HTTP ${r.status}).`);
     return r.json();
@@ -638,7 +684,11 @@
     let salvo = null;
     try { salvo = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { salvo = null; }
     if (salvo && Array.isArray(salvo.abas)) {
-      const criadas = salvo.abas.filter((x) => x && x.text).map((x) => novaAba(x.text, x.qid, Array.isArray(x.seg) ? x.seg.filter((s) => s && s.text) : []));
+      const criadas = salvo.abas.filter((x) => x && x.text).map((x) => {
+        // formato antigo: {text, qid, seg[]}; atual: {text, qid, turnos[]}
+        const turnos = Array.isArray(x.turnos) ? x.turnos : [{ text: x.text, qid: x.qid }, ...(x.seg || [])];
+        return novaAba(x.text, x.qid, turnos.filter((t) => t && t.text));
+      });
       const alvo = criadas[salvo.ativa];
       ativar(alvo ? alvo.id : "inicio");
       for (const a of criadas) carregar(a);

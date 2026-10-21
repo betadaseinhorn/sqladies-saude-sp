@@ -152,7 +152,6 @@ textarea { flex: 1; border: 0; outline: 0; background: transparent; resize: none
 .dash-sub { color: var(--text-2); font-size: 13.5px; margin-top: 2px; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .tag { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--accent-wash); color: var(--accent-ink); }
-.match-info { font-size: 12px; color: var(--muted); max-width: 420px; }
 .section-title { display: flex; align-items: center; gap: 10px; margin: 22px 0 10px; font-size: 13px; font-weight: 650;
   text-transform: uppercase; letter-spacing: .05em; color: var(--text-2); }
 
@@ -191,10 +190,28 @@ textarea { flex: 1; border: 0; outline: 0; background: transparent; resize: none
 .aba-feedback p { margin: 0 0 8px; font-size: 14px; color: var(--text-2); }
 .aba-sugestoes { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
 .aba-sugestoes > span { font-size: 12.5px; color: var(--muted); }
-.dash-sep { max-width: 1240px; margin: 40px auto 20px; scroll-margin-top: 64px; display: flex; align-items: center; gap: 12px; color: var(--text-2);
-  font-size: 13px; font-weight: 600; }
-.dash-sep::before, .dash-sep::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-.dash-sep span { max-width: 70%; overflow-wrap: anywhere; text-align: center; }
+/* Conversa na aba: um turno = balão da pergunta + dashboard */
+.turno { scroll-margin-top: 104px; }
+.turno + .turno { margin-top: 44px; padding-top: 28px; border-top: 1px dashed var(--border); }
+.balao-linha { max-width: 1240px; margin: 0 auto 18px; display: flex; justify-content: flex-end; }
+.balao { max-width: min(640px, 85%); background: var(--accent); color: #fff; border-radius: 18px 18px 4px 18px;
+  padding: 9px 15px 10px; box-shadow: var(--shadow); }
+.balao p { margin: 0; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+.balao-quem { display: block; font-size: 11.5px; font-weight: 600; opacity: .85; margin-bottom: 1px; }
+.turnos-nav { position: sticky; top: 47px; z-index: 4; display: flex; align-items: center; gap: 6px; overflow-x: auto;
+  scrollbar-width: thin; margin: -24px -24px 20px; padding: 8px 24px; background: color-mix(in srgb, var(--page) 92%, transparent);
+  backdrop-filter: blur(6px); border-bottom: 1px solid var(--border); }
+.turnos-nav[hidden] { display: none; }
+.turnos-nav-label { flex: none; font-size: 12.5px; color: var(--muted); margin-right: 2px; }
+.turno-pill { flex: none; display: inline-flex; align-items: center; gap: 6px; max-width: 240px; padding: 4px 11px 4px 4px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text-2); font-size: 12.5px; cursor: pointer; }
+.turno-pill:hover { border-color: var(--accent); }
+.turno-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.turno-pill[aria-current="true"] { border-color: var(--accent); background: var(--accent-wash); color: var(--accent-ink); font-weight: 600; }
+.turno-pill-n { flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2);
+  font-size: 11.5px; font-weight: 700; }
+.turno-pill[aria-current="true"] .turno-pill-n { background: var(--accent); color: #fff; }
+.turno-pill-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 
 /* Por que essa pergunta importa */
 .relev { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
@@ -254,6 +271,8 @@ pre.sql .com { color: var(--code-com); font-style: italic; }
 @media (max-width: 960px) { .charts, .relev { grid-template-columns: 1fr; } }
 @media (max-width: 640px) {
   .panel { padding: 16px 16px 40px; }
+  .turnos-nav { margin: -16px -16px 16px; padding: 8px 16px; }
+  .balao { max-width: 92%; }
   .tabbar { padding: 6px 8px 0; gap: 6px; }
   .logo { display: none; }
   .tab { max-width: 170px; flex-basis: 170px; }

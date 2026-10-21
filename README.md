@@ -84,9 +84,10 @@ static/     index.html, css/style.css, js/app.js, vendor/plotly.min.js
 - **Abas de dashboard**: cada pergunta abre uma aba com o texto digitado como título. O ponto colorido na aba indica a
   pior situação dos alertas daquele dashboard. As abas podem ser fechadas (×, clique do meio ou tecla Delete) e são
   reabertas ao recarregar a página.
-- **Outra pergunta na mesma aba**: no fim de cada aba, depois da Query SQL, há uma caixa de pergunta com 2–3
-  sugestões de continuação (`SEGUINTES` em `app/questions.py`). O novo dashboard aparece logo abaixo, na mesma aba,
-  e a caixa desce para o fim. A bolinha da aba mostra a pior situação entre os dashboards dela.
+- **Conversa na aba**: cada pergunta aparece num balão, seguido do dashboard que responde a ela. No fim da aba
+  há uma caixa para fazer outra pergunta, com 2–3 sugestões de continuação (`SEGUINTES` em `app/questions.py`); o
+  novo balão e o novo dashboard aparecem logo abaixo. A partir da 2ª pergunta, uma faixa fixa "Perguntas: 1 · 2 · 3"
+  leva de volta a cada uma. A bolinha da aba mostra a pior situação entre os dashboards dela.
 - **Menu de abas fixo**: a barra de abas fica sempre visível no topo, mesmo no fim de abas longas.
 - **Conteúdo da aba**: cabeçalho e KPIs → **Situação** (alertas) → achados → **Por que essa pergunta importa** → gráficos → tabela → **Query SQL (Oracle)**.
 
