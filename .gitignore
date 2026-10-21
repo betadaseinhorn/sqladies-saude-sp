@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Dados baixados e gerados (recriados pelo pipeline)
+data/raw/
+data/processed/
+data/sqladies.db
+data/ref/populacao_*.json

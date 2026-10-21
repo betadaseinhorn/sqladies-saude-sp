@@ -1,0 +1,23 @@
+cap_num,cap_cod,inicio,fim,cap_nome
+1,I,A00,B99,Infecciosas e parasitárias
+2,II,C00,D48,Neoplasias
+3,III,D50,D89,Sangue e imunidade
+4,IV,E00,E90,Endócrinas e metabólicas
+5,V,F00,F99,Transtornos mentais
+6,VI,G00,G99,Sistema nervoso
+7,VII,H00,H59,Olho e anexos
+8,VIII,H60,H95,Ouvido
+9,IX,I00,I99,Aparelho circulatório
+10,X,J00,J99,Aparelho respiratório
+11,XI,K00,K93,Aparelho digestivo
+12,XII,L00,L99,Pele e subcutâneo
+13,XIII,M00,M99,Osteomuscular
+14,XIV,N00,N99,Aparelho geniturinário
+15,XV,O00,O99,"Gravidez, parto e puerpério"
+16,XVI,P00,P96,Afecções perinatais
+17,XVII,Q00,Q99,Malformações congênitas
+18,XVIII,R00,R99,Sintomas e achados anormais
+19,XIX,S00,T98,Lesões e envenenamentos
+20,XX,V01,Y98,Causas externas
+21,XXI,Z00,Z99,Contatos com serviços de saúde
+22,XXII,U00,U99,Códigos especiais

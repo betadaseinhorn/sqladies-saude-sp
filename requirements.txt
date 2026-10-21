@@ -1,0 +1,20 @@
+# App (offline)
+fastapi==0.156.3
+uvicorn==0.54.0
+pandas==3.0.6
+numpy==2.5.4
+scipy==1.18.1
+statsmodels==0.15.0
+rapidfuzz==3.14.6
+
+# ETL e análises
+pyarrow==26.0.0
+requests==2.34.2
+scikit-learn==1.9.1
+
+# Notebook e testes
+nbformat==5.11.1
+nbclient==0.11.0
+ipykernel==7.4.0
+pytest==9.1.1
+httpx==0.28.1
