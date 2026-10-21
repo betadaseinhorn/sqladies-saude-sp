@@ -253,7 +253,17 @@ textarea { flex: 1; border: 0; outline: 0; background: transparent; resize: none
 .plot { width: 100%; }
 
 details.tbl { margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
-details.tbl summary { cursor: pointer; padding: 10px 14px; font-size: 13.5px; font-weight: 600; color: var(--text-2); }
+details.tbl summary { cursor: pointer; padding: 8px 10px 8px 14px; font-size: 13.5px; font-weight: 600; color: var(--text-2);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+details.tbl summary::before { content: "▸"; }
+details.tbl[open] summary::before { content: "▾"; }
+details.tbl summary::-webkit-details-marker { display: none; }
+.tbl-titulo { flex: 1; min-width: 0; }
+.csv-btn, .print-btn { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 12.5px; font-weight: 500; padding: 5px 10px;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text-2); cursor: pointer; flex: none; }
+.csv-btn:hover, .print-btn:hover { border-color: var(--accent); color: var(--text); }
+.csv-btn .ico, .print-btn .ico { width: 15px; height: 15px; }
+.so-impressao { display: none; }
 .tbl-wrap { overflow: auto; max-height: 440px; border-top: 1px solid var(--border); }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 th, td { padding: 7px 12px; text-align: left; border-bottom: 1px solid var(--grid); white-space: nowrap; }
@@ -306,3 +316,28 @@ pre.sql .com { color: var(--code-com); font-style: italic; }
   .alertas { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ------------------------------------------------------------ impressão --- */
+@page { margin: 12mm; }
+@media print {
+  body.modo-impressao { background: #fff; display: block; }
+  body.modo-impressao .tabbar, body.modo-impressao .turnos-nav, body.modo-impressao .aba-pergunta,
+  body.modo-impressao .balao-linha, body.modo-impressao .filtros-bar, body.modo-impressao .print-btn,
+  body.modo-impressao .csv-btn, body.modo-impressao .copy-btn, body.modo-impressao .legenda-status,
+  body.modo-impressao .turno:not(.imprimir) { display: none !important; }
+  body.modo-impressao .panel { padding: 0; }
+  body.modo-impressao .turno { margin: 0; padding: 0; border: 0; }
+  body.modo-impressao .so-impressao { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: #444;
+    border-bottom: 1px solid #ccc; padding-bottom: 6px; margin-bottom: 12px; }
+  body.modo-impressao .charts, body.modo-impressao .relev { grid-template-columns: 1fr; }
+  body.modo-impressao .card, body.modo-impressao .alerta, body.modo-impressao .kpi, body.modo-impressao .relev-bloco,
+  body.modo-impressao .insights, body.modo-impressao tr { break-inside: avoid; }
+  body.modo-impressao .card, body.modo-impressao .kpi, body.modo-impressao .alerta { box-shadow: none; }
+  body.modo-impressao .tbl-wrap { max-height: none; overflow: visible; }
+  body.modo-impressao th { position: static; }
+  body.modo-impressao table { font-size: 9px; table-layout: auto; }
+  body.modo-impressao th, body.modo-impressao td { white-space: normal; padding: 3px 5px; overflow-wrap: anywhere; }
+  body.modo-impressao td .status-badge { font-size: 9px; padding: 0 6px 0 2px; }
+  body.modo-impressao pre.sql { max-height: none; overflow: visible; white-space: pre-wrap; font-size: 9.5px; }
+  body.modo-impressao * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

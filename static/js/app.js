@@ -208,9 +208,62 @@
       el("span", { class: "sico", "aria-hidden": "true", text: n.icone }), n.rotulo);
   }
 
+  // -------------------------------------------------------------- exportar ---
+  const nomeArquivo = (t) => "sqladies_" + t.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "").toLowerCase().slice(0, 60);
+
+  // CSV para o Excel em português: separador ";", vírgula decimal e BOM UTF-8
+  function baixarCsv(spec) {
+    const CASAS = { int: 0, dec1: 1, pct: 1, dec2: 2, brl: 2, auto: 2, dec3: 3 };
+    const cel = (v, f) => {
+      if (v == null) return "";
+      if (typeof v === "number") return String(Number(v.toFixed(CASAS[f] ?? 2))).replace(".", ",");
+      const s = String(v);
+      return /[;"\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const linhas = [spec.columns.map((c) => cel(c.label)).join(";")];
+    for (const r of spec.rows) {
+      linhas.push(spec.columns.map((c) => cel(c.fmt === "status" ? (NIVEL[r[c.key]] || {}).rotulo : r[c.key], c.fmt)).join(";"));
+    }
+    const blob = new Blob(["\ufeff" + linhas.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = el("a", { href: url, download: nomeArquivo(spec.title) + ".csv" });
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // imprime só um turno (pergunta + dashboard); "Salvar como PDF" fica na janela de impressão do navegador
+  async function imprimir(t) {
+    const tema = document.documentElement.dataset.theme;
+    const fechados = [...t.dash.querySelectorAll("details")].filter((d) => !d.open);
+    fechados.forEach((d) => { d.open = true; });
+    document.documentElement.dataset.theme = "light"; // papel: sempre tema claro
+    document.body.classList.add("modo-impressao");
+    t.el.classList.add("imprimir");
+    await Promise.all(t.charts.map(([div, spec]) => {
+      drawChart(div, spec);
+      return Plotly.relayout(div, { width: 680 });
+    }));
+    const fim = () => {
+      fechados.forEach((d) => { d.open = false; });
+      if (tema) document.documentElement.dataset.theme = tema; else delete document.documentElement.dataset.theme;
+      document.body.classList.remove("modo-impressao");
+      t.el.classList.remove("imprimir");
+      t.charts.forEach(([div, spec]) => { drawChart(div, spec); Plotly.Plots.resize(div); });
+    };
+    window.addEventListener("afterprint", fim, { once: true });
+    window.print();
+  }
+
   // -------------------------------------------------------------- tabelas ---
   function buildTable(spec) {
-    const det = el("details", { class: "tbl" }, el("summary", { text: `Ver tabela: ${spec.title} (${spec.rows.length})` }));
+    const csv = el("button", { type: "button", class: "csv-btn", title: "Baixar a tabela em CSV (abre no Excel)",
+      onclick: (e) => { e.preventDefault(); e.stopPropagation(); baixarCsv(spec); } },
+    svgIcon('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'), el("span", { text: "Baixar CSV" }));
+    const det = el("details", { class: "tbl" }, el("summary", {},
+      el("span", { class: "tbl-titulo", text: `Ver tabela: ${spec.title} (${spec.rows.length})` }), csv));
     const wrap = el("div", { class: "tbl-wrap" });
     const tbody = el("tbody");
     const isNum = (c) => c.fmt !== "text" && c.fmt !== "status";
@@ -411,7 +464,11 @@
     const tags = (d.filtros || []).map((f) => el("span", { class: "tag", text: f }));
     root.append(el("div", { class: "dash-head" },
       el("div", {}, el("h2", { text: d.title }), el("div", { class: "dash-sub", text: d.subtitle || "" }),
-        tags.length ? el("div", { class: "tags" }, tags) : null)));
+        tags.length ? el("div", { class: "tags" }, tags) : null),
+      el("button", { type: "button", class: "print-btn", title: "Imprimir este dashboard ou salvar em PDF",
+        onclick: () => imprimir(t) },
+      svgIcon('<path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/>'),
+      el("span", { text: "Imprimir / PDF" }))));
     const barra = barraFiltros(res, aoFiltrar);
     if (barra) root.append(barra);
 
@@ -514,6 +571,9 @@
     t.params = res.params || {};
     t.dash = montarDash(t, res, (p, f) => refazerTurno(a, t, p, f));
     t.el = el("section", { class: "turno", "data-n": String(n), "aria-label": `Pergunta ${n}` },
+      el("div", { class: "so-impressao" },
+        el("strong", { text: "SQLadies · adaptação demonstrativa da aplicação entregue à Oracle" }),
+        el("span", { text: `Pergunta: “${t.text}” · ${new Date().toLocaleDateString("pt-BR")}` })),
       el("div", { class: "balao-linha" }, el("div", { class: "balao" },
         el("span", { class: "balao-quem", text: `Você · pergunta ${n}` }), el("p", { text: t.text }))),
       t.dash);

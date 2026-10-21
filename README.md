@@ -91,6 +91,9 @@ static/     index.html, css/style.css, js/app.js, vendor/plotly.min.js
 - **Filtros editáveis**: cada dashboard tem uma barra com os filtros que ele usa (ano, DRS, causa, caráter,
   município, top N; lista em `FILTROS`, `app/questions.py`). Mudar um filtro refaz só aquele dashboard, no mesmo lugar,
   e a query Oracle acompanha. Os valores são validados por lista branca (`validar_params`, `app/matcher.py`).
+- **Exportar**: "Baixar CSV" em cada tabela (separador `;`, vírgula decimal e BOM, para abrir direto no Excel) e
+  "Imprimir / PDF" em cada dashboard: imprime só aquela pergunta, em tema claro, com as tabelas abertas e a query
+  completa ("Salvar como PDF" na janela de impressão).
 - **Menu de abas fixo**: a barra de abas fica sempre visível no topo, mesmo no fim de abas longas.
 - **Conteúdo da aba**: cabeçalho e KPIs → **Situação** (alertas) → achados → **Por que essa pergunta importa** → gráficos → tabela → **Query SQL (Oracle)**.
 
