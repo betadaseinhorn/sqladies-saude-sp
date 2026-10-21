@@ -25,6 +25,7 @@
   let seq = 0;
   let pendingId = null; // id da pergunta escolhida num chip (enquanto o texto não for editado)
   let pendingText = "";
+  let FILT = null; // opções dos filtros (/api/filters), carregadas no init
 
   const nf0 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
   const nf1 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -315,12 +316,104 @@
   }
 
   // ------------------------------------------------------------ dashboard ---
-  function montarDash(t, d) {
+  // ------------------------------------------------------------ filtros ---
+  // Barra de filtros editáveis: só os filtros que o dashboard usa (filtros_aceitos, vindo da API).
+  function barraFiltros(res, aoMudar) {
+    const fa = res.filtros_aceitos;
+    if (!FILT || !fa || !fa.chaves.length) return null;
+    const atual = res.params || {};
+    const obrig = new Set(fa.obrigatorios);
+    const campos = [];
+    const sel = (chave, rotulo, todos, opcoes) => {
+      const s = el("select", { "data-chave": chave, "aria-label": rotulo });
+      if (!obrig.has(chave)) s.append(el("option", { value: "", text: todos }));
+      for (const [v, t] of opcoes) s.append(el("option", { value: String(v), text: t }));
+      s.value = atual[chave] != null ? String(atual[chave]) : "";
+      s.addEventListener("change", enviar);
+      campos.push(el("label", { class: "filtro" }, el("span", { text: rotulo }), s));
+    };
+    const coletar = () => {
+      const p = {};
+      for (const s of fs.querySelectorAll("select")) if (s.value) p[s.dataset.chave] = s.dataset.chave === "cap_cid" || s.dataset.chave === "carater" ? s.value : Number(s.value);
+      const cods = [...fs.querySelectorAll("input[data-cod]")].map((i) => Number(i.dataset.cod)).filter(Boolean);
+      if (cods.length) p.municipios = cods;
+      return p;
+    };
+    function enviar() { aoMudar(coletar(), fs); }
+
+    for (const chave of fa.chaves) {
+      if (chave === "ano") sel("ano", "Ano", "Todos os anos", FILT.anos.map((a) => [a, String(a)]));
+      if (chave === "drs") sel("drs", "DRS", "Todas as DRS", FILT.drs.map((d) => [d.drs_num, d.drs_nome]));
+      if (chave === "cap_cid") sel("cap_cid", "Causa", "Todas as causas", FILT.capitulos.map((c) => [c.cap_cod, c.cap_nome]));
+      if (chave === "carater") sel("carater", "Caráter", "Eletivo e urgência", [["Eletivo", "Eletivo"], ["Urgência", "Urgência"]]);
+      if (chave === "top_n") {
+        const ns = [...new Set([5, 10, 15, 20, 30, 50, atual.top_n].filter(Boolean))].sort((x, y) => x - y);
+        sel("top_n", "Mostrar", "Padrão", ns.map((n) => [n, `Top ${n}`]));
+      }
+      if (chave === "municipios") {
+        const cods = atual.municipios || [];
+        for (let i = 0; i < fa.mun_max; i++) {
+          const cod = cods[i];
+          const inp = el("input", { type: "text", list: "dl-municipios", placeholder: obrig.has("municipios") ? "Município" : "Todos",
+            "aria-label": fa.mun_max > 1 ? `Município ${i + 1}` : "Município", autocomplete: "off" });
+          if (cod) { inp.value = FILT.nomeMun.get(cod) || ""; inp.dataset.cod = cod; }
+          inp.addEventListener("change", () => {
+            const nome = inp.value.trim();
+            const c = FILT.munPorNome.get(nome.toLowerCase());
+            inp.classList.toggle("invalido", Boolean(nome) && !c);
+            if (nome && !c) return;
+            if (c) inp.dataset.cod = c; else delete inp.dataset.cod;
+            enviar();
+          });
+          campos.push(el("label", { class: "filtro filtro-mun" },
+            el("span", { text: fa.mun_max > 1 ? `Município ${i + 1}` : "Município" }), inp));
+        }
+      }
+    }
+    const temFiltro = fa.chaves.some((k) => !obrig.has(k) && atual[k] != null && k !== "top_n");
+    const limpar = el("button", { type: "button", class: "filtro-limpar", text: "Limpar filtros",
+      onclick: () => aoMudar({}, fs) });
+    if (!temFiltro) limpar.disabled = true;
+    const fs = el("fieldset", { class: "filtros-bar" }, el("legend", { text: "Filtros" }), ...campos, limpar,
+      el("span", { class: "filtro-status", "aria-live": "polite" }));
+    return fs;
+  }
+
+  // refaz o dashboard de um turno com os filtros escolhidos, no mesmo lugar
+  async function refazerTurno(a, t, params, fs) {
+    const status = fs.querySelector(".filtro-status");
+    fs.disabled = true;
+    t.dash.classList.add("atualizando");
+    status.replaceChildren(el("span", { class: "spinner", "aria-hidden": "true" }), "Atualizando…");
+    try {
+      const res = await perguntar(t.text, t.qid, params);
+      if (res.erro || !res.matched) throw new Error(res.erro || "Não consegui aplicar os filtros.");
+      t.charts.forEach(([div]) => Plotly.purge(div));
+      t.charts = [];
+      t.params = res.params || {};
+      t.nivel = res.dashboard.status_geral;
+      const novo = montarDash(t, res, (p, f) => refazerTurno(a, t, p, f));
+      t.dash.replaceWith(novo);
+      t.dash = novo;
+      atualizarStatus(a);
+      if (ativa === a.id) t.charts.forEach(([div, spec]) => drawChart(div, spec));
+      salvar();
+    } catch (e) {
+      fs.disabled = false;
+      t.dash.classList.remove("atualizando");
+      status.replaceChildren(el("span", { class: "erro", text: e.message }));
+    }
+  }
+
+  function montarDash(t, res, aoFiltrar) {
+    const d = res.dashboard;
     const root = el("div", { class: "dash" });
     const tags = (d.filtros || []).map((f) => el("span", { class: "tag", text: f }));
     root.append(el("div", { class: "dash-head" },
       el("div", {}, el("h2", { text: d.title }), el("div", { class: "dash-sub", text: d.subtitle || "" }),
         tags.length ? el("div", { class: "tags" }, tags) : null)));
+    const barra = barraFiltros(res, aoFiltrar);
+    if (barra) root.append(barra);
 
     if (d.kpis && d.kpis.length) {
       root.append(el("div", { class: "kpis" }, d.kpis.map((k) => el("div", { class: "kpi" },
@@ -419,7 +512,7 @@
     t.nivel = res.dashboard.status_geral;
     t.qid = res.question_id;
     t.params = res.params || {};
-    t.dash = montarDash(t, res.dashboard);
+    t.dash = montarDash(t, res, (p, f) => refazerTurno(a, t, p, f));
     t.el = el("section", { class: "turno", "data-n": String(n), "aria-label": `Pergunta ${n}` },
       el("div", { class: "balao-linha" }, el("div", { class: "balao" },
         el("span", { class: "balao-quem", text: `Você · pergunta ${n}` }), el("p", { text: t.text }))),
@@ -669,7 +762,19 @@
   });
 
   // ---------------------------------------------------------------- init ---
+  async function carregarFiltros() {
+    try {
+      const f = await fetch("/api/filters").then((r) => r.json());
+      f.nomeMun = new Map(f.municipios.map((m) => [m.cod_mun, m.nome]));
+      f.munPorNome = new Map(f.municipios.map((m) => [m.nome.toLowerCase(), m.cod_mun]));
+      document.body.append(el("datalist", { id: "dl-municipios" },
+        f.municipios.map((m) => el("option", { value: m.nome }))));
+      FILT = f;
+    } catch (e) { FILT = null; /* sem filtros editáveis; o dashboard funciona igual */ }
+  }
+
   async function init() {
+    const filtros = carregarFiltros();
     try {
       const qs = await fetch("/api/questions").then((r) => r.json());
       const cat = $("#catalogo");
@@ -680,6 +785,7 @@
     } catch (e) {
       mostrarFeedback(el("p", { class: "erro", text: "Não consegui carregar as perguntas. Inicie o servidor com: uvicorn app.main:app" }));
     }
+    await filtros;
     // reabre as abas da última visita (preferência local; falha em silêncio)
     let salvo = null;
     try { salvo = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { salvo = null; }

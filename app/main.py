@@ -16,8 +16,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import dashboards, db
-from app.matcher import match
-from app.questions import CATALOGO, CATEGORIAS, POR_ID
+from app.matcher import match, validar_params
+from app.questions import CATALOGO, CATEGORIAS, POR_ID, filtros_aceitos
 
 STATIC = Path(__file__).resolve().parents[1] / "static"
 log = logging.getLogger("sqladies")
@@ -29,6 +29,7 @@ app.mount("/static", StaticFiles(directory=STATIC), name="static")
 class Pergunta(BaseModel):
     text: str = Field(..., max_length=300)
     question_id: str | None = None
+    params: dict | None = None  # filtros escolhidos na barra do dashboard (validados por lista branca)
 
 
 def _clean(o):
@@ -70,6 +71,8 @@ def ask(p: Pergunta):
     if not texto and not p.question_id:
         raise HTTPException(400, "Pergunta vazia")
     m = match(texto, p.question_id)
+    if p.params is not None and p.question_id in POR_ID:
+        m.params = validar_params(p.params, p.question_id)
     if m.question is None:
         return {"matched": False, "params": m.params,
                 "sugestoes": [{"id": q.id, "texto": q.texto} for q in m.sugestoes]}
@@ -82,6 +85,7 @@ def ask(p: Pergunta):
                             status_code=200)
     return _clean({"matched": True, "question_id": m.question.id, "pergunta": m.question.texto,
                    "score": round(m.score, 1), "params": m.params, "dashboard": dash,
+                   "filtros_aceitos": filtros_aceitos(m.question.id),
                    "sugestoes": [{"id": q.id, "texto": q.texto} for q in m.sugestoes]})
 
 

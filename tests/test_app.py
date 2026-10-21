@@ -178,3 +178,45 @@ def test_api_seguintes_e_categoria():
     assert 2 <= len(seg) <= 3 and all(x["id"] and x["texto"] for x in seg)
     cats = client.get("/api/questions").json()["categorias"]
     assert all(q["categoria"] == c["nome"] for c in cats for q in c["perguntas"])
+
+
+# --------------------------------------------------------- filtros editáveis ---
+from app.matcher import validar_params  # noqa: E402
+from app.questions import FILTROS as FILTROS_Q  # noqa: E402
+
+VALORES = {"ano": 2025, "drs": 7, "cap_cid": "X", "carater": "Urgência", "municipios": [350950, 354340, 355030],
+           "top_n": 10}
+
+
+def test_filtros_cobrem_catalogo():
+    assert set(FILTROS_Q) == set(POR_ID)
+    assert all(set(v) <= set(VALORES) for v in FILTROS_Q.values())
+
+
+@pytest.mark.parametrize("q", CATALOGO, ids=lambda q: q.id)
+def test_cada_filtro_aceito_constroi(q):
+    for k in FILTROS_Q[q.id]:
+        params = validar_params({k: VALORES[k]}, q.id)
+        assert k in params
+        dashboards.build(q.id, params)
+
+
+def test_validar_params_lista_branca():
+    sujo = {"ano": "1999", "drs": 99, "cap_cid": "X' OR 1=1 --", "carater": "Qualquer", "top_n": 999,
+            "municipios": ["350950; DROP TABLE x", 1, 350950], "extra": "x"}
+    assert validar_params(sujo, "ranking_hospitais") == {"top_n": 50, "municipios": [350950]}
+    assert validar_params({"ano": 2025, "drs": "7"}, "custos") == {"ano": 2025, "drs": 7}
+    assert validar_params({"cap_cid": "X"}, "custos") == {}  # custos não filtra por causa
+    assert validar_params({}, "sazonal_cap_regiao") == {"cap_cid": "X"}  # obrigatório volta ao exemplo
+    assert validar_params({"municipios": [355030]}, "comparar_municipios")["municipios"] == [355030, 350950]
+    assert len(validar_params({"municipios": [350950, 354340, 355030, 355220]}, "comparar_municipios")["municipios"]) == 3
+    assert validar_params("nao e dict", "visao_geral") == {}
+
+
+def test_api_aplica_filtros():
+    r = client.post("/api/ask", json={"text": "panorama", "question_id": "visao_geral",
+                                      "params": {"ano": 2025, "drs": 7}}).json()
+    assert r["params"] == {"ano": 2025, "drs": 7}
+    assert r["dashboard"]["filtros"] == ["2025", "DRS VII - Campinas"]
+    assert r["filtros_aceitos"]["chaves"] == list(FILTROS_Q["visao_geral"])
+    assert any("2025" in b["sql"] for b in r["dashboard"]["sql"])

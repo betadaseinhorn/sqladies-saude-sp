@@ -15,7 +15,7 @@ from functools import lru_cache
 from rapidfuzz import fuzz
 
 from app import db
-from app.questions import CATALOGO, POR_ID, Question
+from app.questions import CATALOGO, FILTROS, MUN_MAX, OBRIGATORIOS, POR_ID, Question
 
 LIMIAR = 52  # abaixo disso, o chat sugere perguntas em vez de responder
 
@@ -157,6 +157,47 @@ def _pontuar(q: Question, texto: str, params: dict) -> float:
     if q.id == "capacidade_drs" and re.search(r"\bregi(ao|oes)\b|\bdrs\b", texto):
         s += 15
     return s
+
+
+def validar_params(params: dict, question_id: str) -> dict:
+    """Filtros escolhidos na barra do dashboard: só valores da lista branca e aceitos pela pergunta.
+
+    Tudo o que não for reconhecido é descartado, então nenhum valor livre chega ao SQL.
+    """
+    aceitos = set(FILTROS[question_id])
+    out: dict = {}
+    p = params if isinstance(params, dict) else {}
+
+    def inteiro(v):
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return None
+
+    if "ano" in aceitos and inteiro(p.get("ano")) in db.anos():
+        out["ano"] = inteiro(p["ano"])
+    if "drs" in aceitos and inteiro(p.get("drs")) in set(db.drs()["drs_num"].astype(int)):
+        out["drs"] = inteiro(p["drs"])
+    if "cap_cid" in aceitos and p.get("cap_cid") in set(db.capitulos()["cap_cod"]):
+        out["cap_cid"] = p["cap_cid"]
+    if "carater" in aceitos and p.get("carater") in ("Eletivo", "Urgência"):
+        out["carater"] = p["carater"]
+    if "top_n" in aceitos and inteiro(p.get("top_n")) is not None:
+        out["top_n"] = max(3, min(50, inteiro(p["top_n"])))
+    if "municipios" in aceitos and isinstance(p.get("municipios"), list):
+        validos = set(db.municipios()["cod_mun"].astype(int))
+        cods = [c for c in (inteiro(x) for x in p["municipios"]) if c in validos]
+        cods = list(dict.fromkeys(cods))[:MUN_MAX.get(question_id, 4)]
+        if cods:
+            out["municipios"] = cods
+    # perguntas que precisam de um valor voltam ao exemplo do catálogo
+    for k in OBRIGATORIOS.get(question_id, ()):
+        if k not in out and k in POR_ID[question_id].exemplo_params:
+            out[k] = POR_ID[question_id].exemplo_params[k]
+    if question_id == "comparar_municipios" and len(out.get("municipios", [])) < 2:
+        got = out.get("municipios", [])
+        out["municipios"] = (got + [c for c in POR_ID[question_id].exemplo_params["municipios"] if c not in got])[:2]
+    return out
 
 
 def match(texto: str, question_id: str | None = None) -> Match:

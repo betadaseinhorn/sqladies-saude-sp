@@ -88,6 +88,9 @@ static/     index.html, css/style.css, js/app.js, vendor/plotly.min.js
   há uma caixa para fazer outra pergunta, com 2–3 sugestões de continuação (`SEGUINTES` em `app/questions.py`); o
   novo balão e o novo dashboard aparecem logo abaixo. A partir da 2ª pergunta, uma faixa fixa "Perguntas: 1 · 2 · 3"
   leva de volta a cada uma. A bolinha da aba mostra a pior situação entre os dashboards dela.
+- **Filtros editáveis**: cada dashboard tem uma barra com os filtros que ele usa (ano, DRS, causa, caráter,
+  município, top N; lista em `FILTROS`, `app/questions.py`). Mudar um filtro refaz só aquele dashboard, no mesmo lugar,
+  e a query Oracle acompanha. Os valores são validados por lista branca (`validar_params`, `app/matcher.py`).
 - **Menu de abas fixo**: a barra de abas fica sempre visível no topo, mesmo no fim de abas longas.
 - **Conteúdo da aba**: cabeçalho e KPIs → **Situação** (alertas) → achados → **Por que essa pergunta importa** → gráficos → tabela → **Query SQL (Oracle)**.
 

@@ -91,6 +91,41 @@ CATALOGO: list[Question] = [
 
 POR_ID = {q.id: q for q in CATALOGO}
 
+# Filtros que cada dashboard realmente usa (barra de filtros editáveis no front).
+# Levantados a partir dos builders em app/dashboards.py.
+_BASE = ("ano", "drs", "cap_cid", "carater")
+FILTROS: dict[str, tuple[str, ...]] = {
+    "visao_geral": _BASE,
+    "custos": ("ano", "drs", "carater"),
+    "sazonal_estado": ("drs", "cap_cid", "carater"),
+    "sazonal_drs": (),
+    "sazonal_causas": (),
+    "sazonal_cap_regiao": ("cap_cid",),
+    "ranking_municipios": _BASE + ("top_n",),
+    "ranking_hospitais": _BASE + ("municipios", "top_n"),
+    "ranking_permanencia": _BASE + ("municipios", "top_n"),
+    "comparar_municipios": ("municipios", "ano", "cap_cid", "carater"),
+    "perfil_municipio": ("municipios", "ano", "cap_cid", "carater"),
+    "polos_atracao": ("drs", "top_n"),
+    "capacidade_municipios": ("drs", "top_n"),
+    "ocupacao_hospitais": ("drs", "municipios", "top_n"),
+    "capacidade_drs": (),
+    "ubs_internacoes": ("drs",),
+    "clusters": (),
+    "fatores": (),
+}
+# filtros sem a opção "todos" (o dashboard precisa de um valor) e nº máximo de municípios
+OBRIGATORIOS: dict[str, tuple[str, ...]] = {
+    "sazonal_cap_regiao": ("cap_cid",), "comparar_municipios": ("municipios",), "perfil_municipio": ("municipios",),
+}
+MUN_MAX: dict[str, int] = {"comparar_municipios": 3, "perfil_municipio": 1}
+
+
+def filtros_aceitos(qid: str) -> dict:
+    return {"chaves": list(FILTROS[qid]), "obrigatorios": list(OBRIGATORIOS.get(qid, ())),
+            "mun_max": MUN_MAX.get(qid, 1)}
+
+
 # Próximas perguntas sugeridas no fim de cada dashboard (2 a 3, continuação natural da análise).
 SEGUINTES: dict[str, tuple[str, ...]] = {
     "visao_geral": ("sazonal_estado", "ranking_municipios", "custos"),

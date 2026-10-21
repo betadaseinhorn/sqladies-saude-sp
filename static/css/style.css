@@ -190,6 +190,27 @@ textarea { flex: 1; border: 0; outline: 0; background: transparent; resize: none
 .aba-feedback p { margin: 0 0 8px; font-size: 14px; color: var(--text-2); }
 .aba-sugestoes { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
 .aba-sugestoes > span { font-size: 12.5px; color: var(--muted); }
+/* Filtros editáveis no cabeçalho do dashboard */
+.filtros-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 10px; margin: 14px 0 0; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--surface); min-width: 0; }
+.filtros-bar legend { float: left; width: 100%; padding: 0; margin-bottom: 2px; font-size: 12px; font-weight: 600; color: var(--text-2);
+  text-transform: uppercase; letter-spacing: .04em; }
+.filtro { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 0 1 auto; }
+.filtro span { font-size: 12px; color: var(--muted); }
+.filtro select, .filtro input { font: inherit; font-size: 13.5px; color: var(--text); background: var(--page); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 8px; max-width: 260px; min-width: 0; }
+.filtro input { width: 180px; }
+.filtro select:focus-visible, .filtro input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.filtro input.invalido { border-color: var(--crit); }
+.filtro-limpar { align-self: flex-end; font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: none; color: var(--text-2); cursor: pointer; }
+.filtro-limpar:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+.filtro-limpar:disabled { opacity: .45; cursor: default; }
+.filtro-status { align-self: center; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.filtro-status:empty { display: none; }
+.filtros-bar:disabled { opacity: .8; }
+.dash.atualizando > :not(.dash-head):not(.filtros-bar) { opacity: .45; transition: opacity .2s; }
+
 /* Conversa na aba: um turno = balão da pergunta + dashboard */
 .turno { scroll-margin-top: 104px; }
 .turno + .turno { margin-top: 44px; padding-top: 28px; border-top: 1px dashed var(--border); }
@@ -273,6 +294,8 @@ pre.sql .com { color: var(--code-com); font-style: italic; }
   .panel { padding: 16px 16px 40px; }
   .turnos-nav { margin: -16px -16px 16px; padding: 8px 16px; }
   .balao { max-width: 92%; }
+  .filtro { flex: 1 1 140px; }
+  .filtro select, .filtro input { width: 100%; max-width: 100%; }
   .tabbar { padding: 6px 8px 0; gap: 6px; }
   .logo { display: none; }
   .tab { max-width: 170px; flex-basis: 170px; }
