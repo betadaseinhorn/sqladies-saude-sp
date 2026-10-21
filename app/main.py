@@ -52,7 +52,7 @@ def index():
 @app.get("/api/questions")
 def questions():
     return {"categorias": [
-        {"nome": c, "perguntas": [{"id": q.id, "texto": q.texto} for q in CATALOGO if q.categoria == c]}
+        {"nome": c, "perguntas": [{"id": q.id, "texto": q.texto, "categoria": c} for q in CATALOGO if q.categoria == c]}
         for c in CATEGORIAS]}
 
 

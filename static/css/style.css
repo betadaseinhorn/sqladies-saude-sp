@@ -181,6 +181,20 @@ textarea { flex: 1; border: 0; outline: 0; background: transparent; resize: none
 .insights ul { margin: 0; padding-left: 18px; }
 .insights li { margin: 3px 0; font-size: 14px; }
 
+/* Caixa "fazer outra pergunta" no fim da aba */
+.aba-pergunta { max-width: 760px; margin: 32px auto 8px; padding-top: 24px; border-top: 1px solid var(--border); }
+.aba-pergunta h3 { margin: 0 0 2px; font-size: 16px; font-weight: 650; }
+.aba-pergunta-hint { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+.aba-feedback { margin-top: 10px; }
+.aba-feedback:empty { display: none; }
+.aba-feedback p { margin: 0 0 8px; font-size: 14px; color: var(--text-2); }
+.aba-sugestoes { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.aba-sugestoes > span { font-size: 12.5px; color: var(--muted); }
+.dash-sep { max-width: 1240px; margin: 40px auto 20px; scroll-margin-top: 64px; display: flex; align-items: center; gap: 12px; color: var(--text-2);
+  font-size: 13px; font-weight: 600; }
+.dash-sep::before, .dash-sep::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.dash-sep span { max-width: 70%; overflow-wrap: anywhere; text-align: center; }
+
 /* Por que essa pergunta importa */
 .relev { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .relev-bloco { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; min-width: 0; }

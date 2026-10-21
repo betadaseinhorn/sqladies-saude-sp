@@ -19,6 +19,7 @@ import pandas as pd
 from app import alerts as A
 from app import db
 from app import relevancia as R
+from app.questions import POR_ID, SEGUINTES
 from app.sql_oracle import oracle_sql
 
 MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
@@ -1301,6 +1302,7 @@ def build(question_id: str, params: dict, pergunta: str | None = None) -> dict:
     out["status_geral"] = A.pior(out["alertas"])
     out["relevancia"] = R.secao(question_id, out["alertas"])
     out["sql"] = oracle_sql(question_id, params, pergunta)
+    out["seguintes"] = [{"id": i, "texto": POR_ID[i].texto} for i in SEGUINTES[question_id]]
     out.setdefault("nota", "")
     out.setdefault("tables", [])
     return out

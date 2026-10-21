@@ -90,3 +90,25 @@ CATALOGO: list[Question] = [
 ]
 
 POR_ID = {q.id: q for q in CATALOGO}
+
+# Próximas perguntas sugeridas no fim de cada dashboard (2 a 3, continuação natural da análise).
+SEGUINTES: dict[str, tuple[str, ...]] = {
+    "visao_geral": ("sazonal_estado", "ranking_municipios", "custos"),
+    "custos": ("sazonal_causas", "ranking_permanencia", "ocupacao_hospitais"),
+    "sazonal_estado": ("sazonal_drs", "sazonal_causas", "ocupacao_hospitais"),
+    "sazonal_drs": ("sazonal_cap_regiao", "capacidade_drs", "sazonal_causas"),
+    "sazonal_causas": ("sazonal_cap_regiao", "custos", "sazonal_drs"),
+    "sazonal_cap_regiao": ("sazonal_drs", "capacidade_drs", "ubs_internacoes"),
+    "ranking_municipios": ("ubs_internacoes", "clusters", "fatores"),
+    "ranking_hospitais": ("ocupacao_hospitais", "ranking_permanencia", "polos_atracao"),
+    "ranking_permanencia": ("ocupacao_hospitais", "custos", "ranking_hospitais"),
+    "comparar_municipios": ("polos_atracao", "capacidade_municipios", "clusters"),
+    "perfil_municipio": ("comparar_municipios", "polos_atracao", "capacidade_municipios"),
+    "polos_atracao": ("capacidade_municipios", "ranking_hospitais", "capacidade_drs"),
+    "capacidade_municipios": ("ocupacao_hospitais", "capacidade_drs", "polos_atracao"),
+    "ocupacao_hospitais": ("ranking_permanencia", "capacidade_municipios", "sazonal_estado"),
+    "capacidade_drs": ("sazonal_drs", "capacidade_municipios", "ubs_internacoes"),
+    "ubs_internacoes": ("fatores", "clusters", "ranking_municipios"),
+    "clusters": ("fatores", "ubs_internacoes", "ranking_municipios"),
+    "fatores": ("clusters", "ubs_internacoes", "capacidade_drs"),
+}

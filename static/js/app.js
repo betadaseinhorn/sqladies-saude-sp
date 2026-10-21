@@ -18,8 +18,11 @@
     critico: { rotulo: "Crítico", icone: "✕" },
   };
   const ORDEM_NIVEL = { aceitavel: 0, alerta: 1, critico: 2 };
+  // categorias cujas abas têm a caixa "fazer outra pergunta" no fim (em teste: só Visão geral)
+  const CATS_COM_CAIXA = ["Visão geral"];
+  const CATEGORIA = new Map(); // id da pergunta -> categoria
 
-  const abas = new Map(); // id -> {id, text, qid, params, tab, panel, charts[], drawn, data}
+  const abas = new Map(); // id -> {id, text, qid, tab, panel, charts[], drawn, seg[], niveis[], caixa}
   let ativa = "inicio";
   let seq = 0;
   let pendingId = null; // id da pergunta escolhida num chip (enquanto o texto não for editado)
@@ -311,14 +314,13 @@
   }
 
   // ------------------------------------------------------------ dashboard ---
-  function renderDashboard(a, res) {
-    const d = res.dashboard;
+  function montarDash(a, d, texto) {
     const root = el("div", { class: "dash" });
     const tags = (d.filtros || []).map((f) => el("span", { class: "tag", text: f }));
     root.append(el("div", { class: "dash-head" },
       el("div", {}, el("h2", { text: d.title }), el("div", { class: "dash-sub", text: d.subtitle || "" }),
         tags.length ? el("div", { class: "tags" }, tags) : null),
-      el("div", { class: "match-info", text: `Sua pergunta: “${a.text}”` })));
+      el("div", { class: "match-info", text: `Sua pergunta: “${texto}”` })));
 
     if (d.kpis && d.kpis.length) {
       root.append(el("div", { class: "kpis" }, d.kpis.map((k) => el("div", { class: "kpi" },
@@ -358,7 +360,6 @@
           el("ol", {}, r.acoes.map((t) => el("li", { text: t }))))));
     }
     const charts = el("div", { class: "charts" });
-    a.charts = [];
     for (const c of d.charts || []) {
       const plot = el("div", { class: "plot", role: "img", "aria-label": c.title });
       charts.append(el("div", { class: "card" + (c.wide ? " wide" : "") },
@@ -372,15 +373,91 @@
       root.append(el("h3", { class: "section-title", text: "Query SQL (Oracle)" }));
       root.append(buildSql(d.sql));
     }
-    a.panel.replaceChildren(root);
+    return root;
+  }
+
+  function renderDashboard(a, res) {
+    a.charts = [];
+    a.niveis = [res.dashboard.status_geral];
+    a.panel.replaceChildren(montarDash(a, res.dashboard, a.text));
+    a.caixa = null;
+    if (CATS_COM_CAIXA.includes(CATEGORIA.get(a.qid))) {
+      a.caixa = caixaNaAba(a, res.dashboard.seguintes || []);
+      a.panel.append(a.caixa);
+    }
     a.drawn = false;
     if (ativa === a.id) desenharAba(a);
+  }
+
+  // anexa o dashboard de uma pergunta feita dentro da aba, abaixo dos anteriores
+  function anexarDash(a, res, texto, rolar) {
+    const d = res.dashboard;
+    const n0 = a.charts.length;
+    const sep = el("div", { class: "dash-sep" }, el("span", { text: `Próxima pergunta: “${texto}”` }));
+    if (a.caixa) a.caixa.remove();
+    a.panel.append(sep, montarDash(a, d, texto));
+    a.caixa = caixaNaAba(a, d.seguintes || []);
+    a.panel.append(a.caixa);
+    a.niveis.push(d.status_geral);
+    setStatus(a, a.niveis.reduce((x, y) => (ORDEM_NIVEL[y] > ORDEM_NIVEL[x] ? y : x)));
+    if (ativa === a.id && a.drawn) a.charts.slice(n0).forEach(([div, spec]) => drawChart(div, spec));
+    if (rolar) sep.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
+
+  // caixa "fazer outra pergunta" no fim da aba, com 2–3 sugestões de continuação
+  function caixaNaAba(a, seguintes) {
+    let pend = null, pendText = "";
+    const ta = el("textarea", { rows: "1", maxlength: "300", placeholder: "Pergunte outra coisa sem sair desta aba",
+      "aria-label": "Outra pergunta nesta aba" });
+    const btn = el("button", { type: "submit", class: "send", "aria-label": "Enviar pergunta" },
+      svgIcon('<path d="M5 12h14M13 6l6 6-6 6"/>'));
+    const form = el("form", { class: "composer", autocomplete: "off" }, ta, btn);
+    const fb = el("div", { class: "aba-feedback", "aria-live": "polite" });
+    const ajusta = () => { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 180) + "px"; };
+    const sug = (q) => el("button", { type: "button", class: "chip", text: q.texto, onclick: () => {
+      ta.value = q.texto; pend = q.id; pendText = q.texto; ajusta(); ta.focus();
+      form.classList.remove("flash"); void form.offsetWidth; form.classList.add("flash");
+    } });
+    ta.addEventListener("input", () => { ajusta(); if (ta.value !== pendText) pend = null; });
+    ta.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+    });
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const texto = ta.value.trim();
+      if (!texto || btn.disabled) return;
+      btn.disabled = true;
+      btn.replaceChildren(el("span", { class: "spinner", "aria-hidden": "true" }));
+      try {
+        const res = await perguntar(texto, pend);
+        if (res.erro) throw new Error(res.erro);
+        if (!res.matched) {
+          fb.replaceChildren(el("p", { text: "Não encontrei uma análise para essa pergunta. Você quis dizer:" }),
+            el("div", { class: "chips" }, res.sugestoes.map(sug)));
+          return;
+        }
+        a.seg.push({ text: texto, qid: res.question_id });
+        anexarDash(a, res, texto, true);
+        salvar();
+      } catch (err) {
+        fb.replaceChildren(el("p", { class: "erro", text: err.message }));
+      } finally {
+        btn.disabled = false;
+        btn.replaceChildren(svgIcon('<path d="M5 12h14M13 6l6 6-6 6"/>'));
+      }
+    });
+    return el("section", { class: "aba-pergunta" },
+      el("h3", { text: "Fazer outra pergunta nesta aba" }),
+      el("p", { class: "aba-pergunta-hint", text: "O novo dashboard aparece logo abaixo, nesta mesma aba." }),
+      form, fb,
+      seguintes.length ? el("div", { class: "aba-sugestoes" }, el("span", { text: "Sugestões:" }),
+        el("div", { class: "chips" }, seguintes.map(sug))) : null);
   }
 
   // ---------------------------------------------------------------- abas ---
   function salvar() {
     try {
-      const lista = [...abas.values()].map(({ text, qid }) => ({ text, qid }));
+      const lista = [...abas.values()].map(({ text, qid, seg }) => ({ text, qid, seg }));
       localStorage.setItem(STORE, JSON.stringify({ abas: lista, ativa: ativa === "inicio" ? -1 : [...abas.keys()].indexOf(ativa) }));
     } catch (e) { /* ok */ }
   }
@@ -420,7 +497,7 @@
       : el("span", { class: `dot ${estado ? "n-" + estado : ""}`, title: NIVEL[estado] ? `Situação: ${NIVEL[estado].rotulo}` : "" }));
   }
 
-  function novaAba(text, qid) {
+  function novaAba(text, qid, seg = []) {
     const id = `aba-${++seq}`;
     const panel = el("section", { class: "panel", id: `panel-${id}`, role: "tabpanel", "aria-labelledby": `tab-${id}`, hidden: "" });
     const close = el("span", { class: "tab-close", role: "button", "aria-label": `Fechar aba: ${text}`, title: "Fechar aba" },
@@ -437,7 +514,7 @@
     tab.addEventListener("auxclick", (e) => { if (e.button === 1) { e.preventDefault(); fechar(id); } });
     tabsEl.append(tab);
     panelsEl.append(panel);
-    const a = { id, text, qid, tab, panel, charts: [], drawn: false };
+    const a = { id, text, qid, tab, panel, charts: [], drawn: false, seg, niveis: [], caixa: null };
     abas.set(id, a);
     return a;
   }
@@ -451,6 +528,15 @@
       a.qid = res.question_id;
       renderDashboard(a, res);
       setStatus(a, res.dashboard.status_geral);
+      // perguntas feitas dentro da aba na visita anterior
+      const seg = a.seg;
+      a.seg = [];
+      for (const s of seg) {
+        try {
+          const r = await perguntar(s.text, s.qid);
+          if (r.matched && !r.erro) { a.seg.push(s); anexarDash(a, r, s.text, false); }
+        } catch (e) { /* ignora a pergunta que falhou */ }
+      }
       salvar();
     } catch (e) {
       setStatus(a, null);
@@ -548,6 +634,7 @@
       const qs = await fetch("/api/questions").then((r) => r.json());
       const cat = $("#catalogo");
       for (const c of qs.categorias) {
+        for (const q of c.perguntas) CATEGORIA.set(q.id, c.nome);
         cat.append(el("div", { class: "cat" }, el("h3", { text: c.nome }),
           el("div", { class: "chips" }, c.perguntas.map(chip))));
       }
@@ -558,7 +645,7 @@
     let salvo = null;
     try { salvo = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { salvo = null; }
     if (salvo && Array.isArray(salvo.abas)) {
-      const criadas = salvo.abas.filter((x) => x && x.text).map((x) => novaAba(x.text, x.qid));
+      const criadas = salvo.abas.filter((x) => x && x.text).map((x) => novaAba(x.text, x.qid, Array.isArray(x.seg) ? x.seg.filter((s) => s && s.text) : []));
       const alvo = criadas[salvo.ativa];
       ativar(alvo ? alvo.id : "inicio");
       for (const a of criadas) carregar(a);

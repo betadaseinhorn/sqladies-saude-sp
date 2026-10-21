@@ -159,3 +159,22 @@ def test_relevancia_prioriza_criticos():
 def test_api_relevancia():
     d = client.post("/api/ask", json={"text": "Quais hospitais têm a maior ocupação estimada de leitos?"}).json()
     assert d["dashboard"]["relevancia"]["importancia"]
+
+
+# ------------------------------------------ próxima pergunta dentro da aba ---
+from app.questions import POR_ID, SEGUINTES  # noqa: E402
+
+
+def test_seguintes_validos():
+    assert set(SEGUINTES) == set(POR_ID)
+    for qid, prox in SEGUINTES.items():
+        assert 2 <= len(prox) <= 3 and qid not in prox and len(set(prox)) == len(prox)
+        assert all(i in POR_ID for i in prox)
+
+
+def test_api_seguintes_e_categoria():
+    d = client.post("/api/ask", json={"text": "Qual o panorama geral das internações SUS no estado?"}).json()
+    seg = d["dashboard"]["seguintes"]
+    assert 2 <= len(seg) <= 3 and all(x["id"] and x["texto"] for x in seg)
+    cats = client.get("/api/questions").json()["categorias"]
+    assert all(q["categoria"] == c["nome"] for c in cats for q in c["perguntas"])
