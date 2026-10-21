@@ -130,3 +130,32 @@ def test_api_inclui_alertas_e_sql():
     d = r["dashboard"]
     assert d["alertas"] and d["sql"] and d["status_geral"] in A.NIVEIS
     assert any(c["fmt"] == "status" for t in d["tables"] for c in t["columns"])
+
+
+# ------------------------------------------------- por que a pergunta importa ---
+from app import relevancia as R  # noqa: E402
+
+
+def test_relevancia_cobre_catalogo_e_regras():
+    assert {q.id for q in CATALOGO} == set(R.POR_QUE)
+    assert set(A.REGRAS) == set(R.ACOES_ALERTA)
+
+
+@pytest.mark.parametrize("q", CATALOGO, ids=lambda q: q.id)
+def test_relevancia_em_todo_dashboard(q):
+    r = dashboards.build(q.id, q.exemplo_params)["relevancia"]
+    assert r["importancia"] and r["acoes"] and r["resumo"]
+    assert all(p["nivel"] in ("alerta", "critico") for p in r["problemas"])
+
+
+def test_relevancia_prioriza_criticos():
+    al = [A.classificar("leitos_10k", 20), A.classificar("pct_fora", 40), A.classificar("ocupacao", 95)]
+    r = R.secao("capacidade_drs", al)
+    assert [p["nivel"] for p in r["problemas"]] == ["critico", "alerta"]
+    assert r["acoes"][:2] == [R.ACOES_ALERTA["ocupacao"], R.ACOES_ALERTA["pct_fora"]]
+    assert R.secao("capacidade_drs", [al[0]])["acoes"] == R.POR_QUE["capacidade_drs"]["acoes"]
+
+
+def test_api_relevancia():
+    d = client.post("/api/ask", json={"text": "Quais hospitais têm a maior ocupação estimada de leitos?"}).json()
+    assert d["dashboard"]["relevancia"]["importancia"]

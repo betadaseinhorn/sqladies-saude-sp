@@ -72,6 +72,7 @@ app/        main.py           FastAPI (/api/questions, /api/ask, /api/filters)
             matcher.py        casa texto livre → pergunta (fuzzy + palavras-chave) e extrai filtros
             dashboards.py     um construtor de dashboard por pergunta
             alerts.py         regras de alerta (Aceitável / Alerta / Crítico), limites configuráveis
+            relevancia.py     por que cada pergunta importa e ações sugeridas conforme os alertas
             sql_oracle.py     query Oracle equivalente de cada dashboard, com os filtros da pergunta
 sql/        oracle_schema.sql DDL Oracle do modelo relacional (partições, JSON, materialized views)
 static/     index.html, css/style.css, js/app.js, vendor/plotly.min.js
@@ -83,7 +84,19 @@ static/     index.html, css/style.css, js/app.js, vendor/plotly.min.js
 - **Abas de dashboard**: cada pergunta abre uma aba com o texto digitado como título. O ponto colorido na aba indica a
   pior situação dos alertas daquele dashboard. As abas podem ser fechadas (×, clique do meio ou tecla Delete) e são
   reabertas ao recarregar a página.
-- **Conteúdo da aba**: cabeçalho e KPIs → **Situação** (alertas) → achados → gráficos → tabela → **Query SQL (Oracle)**.
+- **Conteúdo da aba**: cabeçalho e KPIs → **Situação** (alertas) → achados → **Por que essa pergunta importa** → gráficos → tabela → **Query SQL (Oracle)**.
+
+### Por que essa pergunta importa
+
+Cada dashboard explica por que a pergunta é relevante para a gestão do SUS-SP e sugere o que poderia ser feito:
+
+- **O que tem de importante nesta pergunta**: o motivo da pergunta (planejamento, custo, risco ao paciente).
+- **Problemas identificados**: os indicadores do dashboard em Alerta ou Crítico, com os filtros aplicados.
+- **O que poderia ser feito**: primeiro as ações ligadas aos indicadores críticos, depois às de alerta e por fim
+  ações gerais do tema (ex.: NIR e gestão de leitos, PPI, vacinação antes do pico, atenção primária).
+
+Os textos ficam em `app/relevancia.py` (`POR_QUE` por pergunta e `ACOES_ALERTA` por regra de alerta). São sugestões
+de gestão a partir de indicadores agregados, não substituem a análise local.
 
 ## Como a pergunta é entendida
 

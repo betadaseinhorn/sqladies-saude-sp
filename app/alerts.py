@@ -103,7 +103,7 @@ def classificar(chave: str, valor, *, ref: float | None = None, onde: str = "",
     else:
         explic = regra["base"]
     indicador = regra["indicador"] + (f" · {onde}" if onde else "")
-    return {"nivel": nv, "rotulo": ROTULOS[nv], "indicador": indicador, "valor": valor_txt,
+    return {"chave": chave, "nivel": nv, "rotulo": ROTULOS[nv], "indicador": indicador, "valor": valor_txt,
             "referencia": regra["base"], "explicacao": explic}
 
 

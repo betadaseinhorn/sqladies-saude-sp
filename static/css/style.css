@@ -181,6 +181,17 @@ textarea { flex: 1; border: 0; outline: 0; background: transparent; resize: none
 .insights ul { margin: 0; padding-left: 18px; }
 .insights li { margin: 3px 0; font-size: 14px; }
 
+/* Por que essa pergunta importa */
+.relev { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.relev-bloco { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+.relev-bloco h4 { margin: 0 0 6px; font-size: 13px; color: var(--text-2); font-weight: 600; }
+.relev-bloco p, .relev-bloco li { font-size: 14px; line-height: 1.45; margin: 0; }
+.relev-bloco ol { margin: 0; padding-left: 20px; }
+.relev-bloco ol li { margin: 4px 0; }
+.relev-prob { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; }
+.relev-prob li { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+.relev-resumo { color: var(--muted); font-size: 13px !important; }
+
 .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
 .card { border: 1px solid var(--border); border-radius: 12px; padding: 12px 12px 4px; background: var(--surface); min-width: 0; }
 .card.wide { grid-column: 1 / -1; }
@@ -225,7 +236,7 @@ pre.sql .com { color: var(--code-com); font-style: italic; }
 .erro { color: var(--crit); }
 
 /* ------------------------------------------------------------ responsivo --- */
-@media (max-width: 960px) { .charts { grid-template-columns: 1fr; } }
+@media (max-width: 960px) { .charts, .relev { grid-template-columns: 1fr; } }
 @media (max-width: 640px) {
   .panel { padding: 16px 16px 40px; }
   .tabbar { padding: 6px 8px 0; gap: 6px; }

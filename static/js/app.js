@@ -342,6 +342,21 @@
       root.append(el("div", { class: "insights" }, el("h3", { text: "O que os dados mostram" }),
         el("ul", {}, d.insights.map((t) => el("li", { text: t })))));
     }
+    if (d.relevancia) {
+      const r = d.relevancia;
+      root.append(el("h3", { class: "section-title", text: "Por que essa pergunta importa" }));
+      root.append(el("div", { class: "relev" },
+        el("div", { class: "relev-bloco" }, el("h4", { text: "O que tem de importante nesta pergunta" }),
+          el("p", { text: r.importancia })),
+        el("div", { class: "relev-bloco" }, el("h4", { text: "Problemas identificados" }),
+          r.problemas.length
+            ? el("ul", { class: "relev-prob" }, r.problemas.map((pr) => el("li", {},
+              badge(pr.nivel), el("span", { text: `${pr.indicador}: ${pr.valor}` }))))
+            : null,
+          el("p", { class: "relev-resumo", text: r.resumo })),
+        el("div", { class: "relev-bloco" }, el("h4", { text: "O que poderia ser feito" }),
+          el("ol", {}, r.acoes.map((t) => el("li", { text: t }))))));
+    }
     const charts = el("div", { class: "charts" });
     a.charts = [];
     for (const c of d.charts || []) {
