@@ -34,6 +34,24 @@ uvicorn app.main:app              # abra http://localhost:8000
 
 Depois do pipeline, o app não usa a internet: o Plotly está em `static/vendor/` e as fontes são do sistema.
 
+## Rodar em outro PC
+
+O banco `data/sqladies.db` (1,2 GB) não fica no git. Há três formas de tê-lo num PC novo:
+
+1. **Baixar o banco pronto do GitHub Release** (recomendado, cerca de 290 MB e menos de 1 minuto):
+   ```bash
+   git clone https://github.com/betadaseinhorn/sqladies-saude-sp.git
+   cd sqladies-saude-sp
+   python setup_demo.py              # baixa o Release v1.0-dados, confere o SHA-256 e extrai
+   python -m venv .venv && .venv\Scripts\activate
+   pip install -r requirements.txt
+   uvicorn app.main:app
+   ```
+   Se você já tem o `sqladies.db.zip`, use `python setup_demo.py --zip caminho\sqladies.db.zip`.
+2. **Kit de pendrive (offline)**: pasta com o projeto, o banco, os pacotes Python (3.12–3.14) e o instalador do
+   Python. No PC novo: `1-instalar.bat` e depois `2-iniciar.bat`. Não precisa de internet.
+3. **Recriar do zero** a partir do DATASUS/IBGE: `python pipeline.py` (10–20 min, cerca de 550 MB de download).
+
 Testes: `pytest -q`. Notebook de exploração: [analysis/eda.ipynb](analysis/eda.ipynb).
 
 ## Estrutura
