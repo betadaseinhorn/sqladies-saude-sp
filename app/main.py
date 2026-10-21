@@ -74,7 +74,7 @@ def ask(p: Pergunta):
         return {"matched": False, "params": m.params,
                 "sugestoes": [{"id": q.id, "texto": q.texto} for q in m.sugestoes]}
     try:
-        dash = dashboards.build(m.question.id, m.params)
+        dash = dashboards.build(m.question.id, m.params, texto or m.question.texto)
     except Exception:  # noqa: BLE001 - devolve erro amigável ao chat
         log.exception("erro no dashboard %s %s", m.question.id, m.params)
         return JSONResponse({"matched": True, "erro": "Não consegui montar esse dashboard com os filtros "

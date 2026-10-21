@@ -1294,11 +1294,11 @@ BUILDERS: dict[str, Callable[[dict], dict]] = {
 }
 
 
-def build(question_id: str, params: dict) -> dict:
+def build(question_id: str, params: dict, pergunta: str | None = None) -> dict:
     out = BUILDERS[question_id](params)
     out.setdefault("alertas", [])
     out["status_geral"] = A.pior(out["alertas"])
-    out["sql"] = oracle_sql(question_id, params)
+    out["sql"] = oracle_sql(question_id, params, pergunta)
     out.setdefault("nota", "")
     out.setdefault("tables", [])
     return out

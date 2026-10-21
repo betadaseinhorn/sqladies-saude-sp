@@ -590,10 +590,11 @@ CABECALHO = ("-- SQLadies · adaptação demonstrativa do projeto entregue à Or
              "-- Bloco: {titulo}\n")
 
 
-def oracle_sql(question_id: str, params: dict) -> list[dict]:
+def oracle_sql(question_id: str, params: dict, pergunta: str | None = None) -> list[dict]:
     p = _limpa(params)
     blocos = QUERIES[question_id](p)
-    pergunta = POR_ID[question_id].texto
+    # texto do usuário vai só no comentário, em uma linha (quebras de linha removidas)
+    pergunta = " ".join((pergunta or POR_ID[question_id].texto).split())[:200]
     return [{"titulo": b["titulo"],
              "sql": CABECALHO.format(pergunta=pergunta, titulo=b["titulo"]) + b["sql"]}
             for b in blocos]
