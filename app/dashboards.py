@@ -18,6 +18,7 @@ import pandas as pd
 
 from app import alerts as A
 from app import db
+from app.sql_oracle import oracle_sql
 
 MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
 MESES_LONGOS = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto",
@@ -1297,6 +1298,7 @@ def build(question_id: str, params: dict) -> dict:
     out = BUILDERS[question_id](params)
     out.setdefault("alertas", [])
     out["status_geral"] = A.pior(out["alertas"])
+    out["sql"] = oracle_sql(question_id, params)
     out.setdefault("nota", "")
     out.setdefault("tables", [])
     return out
