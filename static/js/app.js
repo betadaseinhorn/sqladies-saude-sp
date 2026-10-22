@@ -26,6 +26,7 @@
   let pendingId = null; // id da pergunta escolhida num chip (enquanto o texto não for editado)
   let pendingText = "";
   let FILT = null; // opções dos filtros (/api/filters), carregadas no init
+  let GEO = null; // malha dos municípios de SP (static/vendor/sp_municipios.geojson), carregada no init
 
   const nf0 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
   const nf1 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -83,6 +84,23 @@
       t.marker.line = { width: 0 };
       t.textfont = { color: T.text2, size: 11.5 };
       if (t.error_x) t.error_x = Object.assign({ color: T.text2, thickness: 1.5, width: 4 }, t.error_x);
+    } else if (t.type === "choropleth") {
+      // mapa dos municípios: a malha vem do arquivo local; bordas na cor da superfície
+      t.geojson = GEO;
+      if (t.scale === "base") t.colorscale = [[0, T.surface2], [1, T.surface2]];
+      else if (t.scale === "categorical") {
+        const n = t.categorias.length;
+        t.colorscale = t.categorias.flatMap((_, i) => [[i / n, T.series[i % 8]], [(i + 1) / n, T.series[i % 8]]]);
+        t.colorbar = Object.assign({}, t.colorbar, { tickvals: t.categorias.map((_, i) => i), ticktext: t.categorias });
+      } else t.colorscale = [[0, T.seq0], [1, T.seq1]];
+      t.marker = { line: { color: T.surface, width: 0.4 } };
+      if (t.showscale !== false) {
+        t.colorbar = Object.assign({ outlinewidth: 0, tickfont: { color: T.text2, size: 11 } }, t.colorbar);
+        if (t.colorbar.title) t.colorbar.title.font = { color: T.text2, size: 11.5 };
+      }
+      delete t.categorias;
+    } else if (t.type === "scattergeo") {
+      t.marker = Object.assign({}, t.marker, { color: color, line: { color: T.surface, width: 1 } });
     } else if (t.type === "scatter") {
       const lines = (t.mode || "").includes("lines");
       const markers = (t.mode || "").includes("markers");
@@ -142,6 +160,10 @@
       L.xaxis.range = [lo < 0 ? lo * (1 + pad) : 0, hi > 0 ? hi * (1 + pad) : 0];
     }
     for (const ax of [L.xaxis, L.yaxis]) if (ax.type === "log" && ax.dtick == null) ax.dtick = 1;
+    if (lay.geo) {
+      L.geo = Object.assign({ bgcolor: "rgba(0,0,0,0)", projection: { type: "mercator" } }, lay.geo);
+      L.showlegend = false;
+    }
     if (lay.xaxis && lay.xaxis.visible === false) L.xaxis.visible = false;
     if (lay.yaxis && lay.yaxis.visible === false) L.yaxis.visible = false;
     L.shapes = (lay.shapes || []).map((s) => {
@@ -153,10 +175,15 @@
   }
 
   function drawChart(div, spec) {
+    if (!GEO && spec.traces.some((t) => t.geojson === "sp")) {
+      div.replaceChildren(el("p", { class: "card-sub", text: "Não consegui carregar o mapa dos municípios." }));
+      return;
+    }
     const T = theme();
     const traces = spec.traces.map((t) => styleTrace(t, T));
     const layout = styleLayout(spec.layout || {}, traces, T, spec.height || 340);
-    Plotly.react(div, traces, layout, { displayModeBar: false, responsive: true });
+    // topojsonURL: mapa-base do Plotly servido localmente (static/vendor/topojson), para funcionar offline
+    Plotly.react(div, traces, layout, { displayModeBar: false, responsive: true, topojsonURL: "/static/vendor/topojson/" });
   }
 
   const graficos = (a) => a.turnos.flatMap((t) => t.charts);
@@ -833,8 +860,13 @@
     } catch (e) { FILT = null; /* sem filtros editáveis; o dashboard funciona igual */ }
   }
 
+  async function carregarMapa() {
+    try { GEO = await fetch("/static/vendor/sp_municipios.geojson").then((r) => r.json()); } catch (e) { GEO = null; }
+  }
+
   async function init() {
     const filtros = carregarFiltros();
+    const mapa = carregarMapa();
     try {
       const qs = await fetch("/api/questions").then((r) => r.json());
       const cat = $("#catalogo");
@@ -845,7 +877,7 @@
     } catch (e) {
       mostrarFeedback(el("p", { class: "erro", text: "Não consegui carregar as perguntas. Inicie o servidor com: uvicorn app.main:app" }));
     }
-    await filtros;
+    await Promise.all([filtros, mapa]);
     // reabre as abas da última visita (preferência local; falha em silêncio)
     let salvo = null;
     try { salvo = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { salvo = null; }

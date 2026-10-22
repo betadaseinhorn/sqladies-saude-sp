@@ -9,7 +9,7 @@ Leva de 10 a 20 minutos na primeira vez (cerca de 550 MB de download do DATASUS)
 import argparse
 import time
 
-from etl import build_db, build_ref, download_cnes, download_sih, transform_cnes, transform_sih
+from etl import build_db, build_mapa, build_ref, download_cnes, download_sih, transform_cnes, transform_sih
 from analysis import run_all
 
 
@@ -18,7 +18,8 @@ def main() -> None:
     ap.add_argument("--sem-download", action="store_true", help="usa os arquivos já baixados")
     args = ap.parse_args()
     etapas = [] if args.sem_download else [("Download SIH/LT/IBGE", download_sih.main),
-                                           ("Download CNES (API)", download_cnes.main)]
+                                           ("Download CNES (API)", download_cnes.main),
+                                           ("Malha dos municípios (IBGE)", build_mapa.main)]
     etapas += [("Referências", build_ref.main), ("Transformação SIH", transform_sih.main),
                ("Transformação CNES", transform_cnes.main), ("Banco SQLite", build_db.main),
                ("Análises", run_all.main)]

@@ -82,6 +82,35 @@ def chart(title: str, traces: list, *, subtitle: str = "", layout: dict | None =
             "layout": layout or {}, "height": height, "wide": wide}
 
 
+def mapa_mun(title: str, df: pd.DataFrame, col: str, hover: str, *, subtitle: str = "", legenda: str = "",
+             categorias: list[str] | None = None, base=None, extras: list | None = None) -> dict:
+    """Mapa coroplético dos municípios de SP (malha IBGE em static/vendor/sp_municipios.geojson).
+
+    `geojson: "sp"` é resolvido pelo front. A escala vai até o percentil 97 para que poucos
+    municípios extremos não apaguem as diferenças entre os demais.
+    `categorias`: valores inteiros 0..n-1 em `col`, coloridos com a paleta categórica.
+    `base`: códigos dos municípios da região, desenhados em cinza por baixo (quem não tem valor
+    aparece sem cor, em vez de sumir do mapa).
+    """
+    d = df[df[col].notna()]
+    traces = []
+    if base is not None:
+        cods = _list(pd.Series(list(base)).astype(int))
+        traces.append({"type": "choropleth", "geojson": "sp", "locations": cods, "z": [0] * len(cods),
+                       "scale": "base", "showscale": False, "hoverinfo": "skip"})
+    tr = {"type": "choropleth", "geojson": "sp", "locations": _list(d["cod_mun"].astype(int)),
+          "z": _list(d[col]), "text": list(d["nome"]), "hovertemplate": "%{text}: " + hover + "<extra></extra>",
+          "colorbar": {"thickness": 10, "len": 0.8, "title": {"text": legenda, "side": "right"}}}
+    if categorias:
+        tr.update({"scale": "categorical", "zmin": -0.5, "zmax": len(categorias) - 0.5, "categorias": categorias,
+                   "customdata": [categorias[int(v)] for v in d[col]]})
+    else:
+        tr.update({"scale": "sequential", "zmin": _num(d[col].min()), "zmax": _num(d[col].quantile(0.97))})
+    return chart(title, traces + [tr] + (extras or []), subtitle=subtitle, height=460, wide=True,
+                 layout={"geo": {"fitbounds": "locations", "visible": False},
+                         "margin": {"l": 0, "r": 0, "t": 4, "b": 0}})
+
+
 def table(title: str, df: pd.DataFrame, cols: list[tuple[str, str, str]]) -> dict:
     """cols: (coluna, rótulo, formato: text|int|dec1|dec2|pct|brl)."""
     rows = df[[c for c, _, _ in cols]].replace([np.inf, -np.inf], np.nan)
@@ -179,6 +208,11 @@ def nome_mun(cod) -> str:
 
 def pop_col(p: dict) -> str:
     return f"pop_{p['ano']}" if p.get("ano") else "(pop_2024 + pop_2025) / 2.0"
+
+
+def _cods_regiao(p: dict) -> list:
+    m = db.municipios()
+    return list(m.loc[m["drs_num"] == int(p["drs"]), "cod_mun"] if p.get("drs") else m["cod_mun"])
 
 
 def _ok(alertas: list) -> list:
@@ -597,6 +631,8 @@ def ranking_municipios(p: dict) -> dict:
          "hovertemplate": "%{text}<br>%{x:,.0f} hab. · %{y:.1f}/1.000<extra></extra>"}],
         layout={"xaxis": {"type": "log", "title": {"text": "População (escala log)"}},
                 "yaxis": {"title": {"text": "Internações/1.000 hab."}}}))
+    charts.append(mapa_mun("Mapa: internações por 1.000 habitantes/ano", d, "taxa", "%{z:.1f} por 1.000 hab.",
+                           subtitle="Todos os municípios, pelo local de residência", legenda="por 1.000"))
     insights = [
         f"{top.iloc[0]['nome']} lidera com {fmt_dec(top.iloc[0]['taxa'], 1)} internações por 1.000 hab./ano, "
         f"{fmt_dec(top.iloc[0]['taxa'] / taxa_est, 1)}× a média {ref}.",
@@ -915,19 +951,15 @@ def polos_atracao(p: dict) -> dict:
             hover="%{y}: %{x:,.0f}/ano<extra></extra>")],
               subtitle="Rótulo: volume anual · % do total de internações do município",
               layout=bar_layout(len(top)), height=bar_height(len(top))),
-        chart("Mapa dos polos (tamanho = pacientes atraídos)", [
-            {"type": "scatter", "mode": "markers", "name": "Demais municípios", "x": _list(m["lon"]),
-             "y": _list(m["lat"]), "text": list(m["nome"]), "colorRole": "muted", "marker": {"size": 4},
-             "hovertemplate": "%{text}<extra></extra>"},
-            {"type": "scatter", "mode": "markers+text", "name": f"Top {top_n}", "x": _list(top["lon"]),
-             "y": _list(top["lat"]), "text": [n if i < 8 and n != "Santo André" else "" for i, n in enumerate(top["nome"])],
-             "hovertext": list(top["nome"]), "textposition": "top center",
-             "colorSlot": 0, "customdata": _list(top["atraidos_ano"]),
-             "marker": {"size": _list(np.sqrt(top["atraidos_ano"]) / np.sqrt(top["atraidos_ano"].max()) * 34 + 6),
-                        "opacity": 0.8},
-             "hovertemplate": "%{hovertext}: %{customdata:,.0f} pacientes de fora/ano<extra></extra>"}],
-              layout={"xaxis": {"visible": False}, "yaxis": {"visible": False, "scaleanchor": "x"},
-                      "showlegend": False}, height=480),
+        mapa_mun("Mapa dos polos (bolha = pacientes de outros municípios por ano)", m, "pct_atraidos",
+                 "%{z:.0f}% das internações são de pacientes de fora", legenda="% de fora",
+                 subtitle="Cor: % das internações do município feitas por pacientes de outras cidades",
+                 base=_cods_regiao(p), extras=[{
+                     "type": "scattergeo", "mode": "markers", "lon": _list(top["lon"]), "lat": _list(top["lat"]),
+                     "text": list(top["nome"]), "customdata": _list(top["atraidos_ano"]), "colorSlot": 0,
+                     "marker": {"size": _list(np.sqrt(top["atraidos_ano"]) / np.sqrt(top["atraidos_ano"].max()) * 34 + 6),
+                                "opacity": 0.75},
+                     "hovertemplate": "%{text}: %{customdata:,.0f} pacientes de fora/ano<extra></extra>"}]),
     ]
     insights = [
         f"{top.iloc[0]['nome']} recebe {fmt_int(top.iloc[0]['atraidos_ano'])} internações/ano de pacientes "
@@ -978,6 +1010,9 @@ def capacidade_municipios(p: dict) -> dict:
              "hovertemplate": "%{text}<br>%{x:,.0f} leitos · %{y:,.0f}/ano<extra></extra>"}],
               layout={"xaxis": {"type": "log", "title": {"text": "Leitos SUS (log)"}},
                       "yaxis": {"type": "log", "title": {"text": "Internações/ano (log)"}}}),
+        mapa_mun("Mapa: internações por leito SUS/ano", m[m["leitos_sus"] > 0], "int_por_leito",
+                 "%{z:.0f} internações por leito/ano", legenda="por leito",
+                 subtitle="Municípios sem leito SUS aparecem em cinza", base=_cods_regiao(p)),
     ]
     insights = [
         f"{top.iloc[0]['nome']} tem {fmt_dec(top.iloc[0]['int_por_leito'], 0)} internações por leito SUS/ano, "
@@ -1153,6 +1188,8 @@ def ubs_internacoes(p: dict) -> dict:
             "type": "bar", "x": list(q["faixa_ubs"].astype(str)), "y": _list(q["pop"]), "colorSlot": 1,
             "text": [fmt_compact(v) for v in q["pop"]], "textposition": "outside", "cliponaxis": False,
             "hovertemplate": "%{x}: %{y:,.0f} hab.<extra></extra>"}]),
+        mapa_mun("Mapa: UBS por 10 mil habitantes", m, "ubs_10k", "%{z:.1f} UBS por 10 mil hab.", legenda="UBS/10 mil",
+                 subtitle="Municípios com 5.000+ hab.; os menores aparecem em cinza", base=_cods_regiao(p)),
     ]
     sentido = "maior" if rho > 0 else "menor"
     insights = [
@@ -1188,21 +1225,19 @@ def clusters(p: dict) -> dict:
     z = perf[feats].sub(c[feats].mean()).div(c[feats].std())
     nomes = [f"Grupo {int(k)}" for k in perf["cluster"]]
     simbolos = ["circle", "square", "diamond", "triangle-up"]
-    pontos, mapa = [], []
+    pontos = []
     for i, row in perf.iterrows():
         g = c[c["cluster"] == row["cluster"]]
         base = {"type": "scatter", "mode": "markers", "name": f"Grupo {int(row['cluster'])}",
                 "text": list(g["nome"]), "colorSlot": i, "marker": {"symbol": simbolos[i % 4]}}
         pontos.append({**base, "x": _list(g["pc1"]), "y": _list(g["pc2"]),
                        "hovertemplate": "%{text}<extra>Grupo " + str(int(row["cluster"])) + "</extra>"})
-        mapa.append({**base, "x": _list(g["lon"]), "y": _list(g["lat"]),
-                     "hovertemplate": "%{text}<extra>Grupo " + str(int(row["cluster"])) + "</extra>"})
     charts = [
         chart("Municípios no espaço das duas componentes principais (PCA)", pontos,
               subtitle=f"PC1 explica {fmt_pct(meta['pc1_var'] * 100, 0)} e PC2 {fmt_pct(meta['pc2_var'] * 100, 0)} da variância",
               layout={"xaxis": {"title": {"text": "PC1"}}, "yaxis": {"title": {"text": "PC2"}}}),
-        chart("Onde ficam os grupos", mapa,
-              layout={"xaxis": {"visible": False}, "yaxis": {"visible": False, "scaleanchor": "x"}}),
+        mapa_mun("Onde ficam os grupos", c.assign(idx=c["cluster"].map({k: i for i, k in enumerate(perf["cluster"])})),
+                 "idx", "%{customdata}", categorias=nomes),
         chart("Perfil de cada grupo (desvio em relação à média dos municípios)", [{
             "type": "heatmap", "z": [[_num(v) for v in row] for row in z.values.T], "x": nomes, "y": labels,
             "scale": "diverging", "zmid": 0, "xgap": 2, "ygap": 2, "colorbar": {"thickness": 10, "title": {"text": "z"}},

@@ -62,6 +62,7 @@ etl/        download_sih.py, download_cnes.py  → data/raw/
             build_ref.py      municípios + DRS/Regiões de Saúde/RRAS + população; capítulos CID-10
             transform_*.py    limpeza → Parquet (data/processed/)
             build_db.py       SQLite: dimensões, fatos, agregados, índices
+            build_mapa.py     malha dos municípios de SP (IBGE) para os mapas
 analysis/   seasonality.py    índice sazonal + STL por estado, DRS, região de saúde e causa
             ranking.py        indicadores por município (residência e ocorrência) e por hospital
             capacity.py       ocupação estimada mensal por DRS
@@ -75,7 +76,7 @@ app/        main.py           FastAPI (/api/questions, /api/ask, /api/filters)
             relevancia.py     por que cada pergunta importa e ações sugeridas conforme os alertas
             sql_oracle.py     query Oracle equivalente de cada dashboard, com os filtros da pergunta
 sql/        oracle_schema.sql DDL Oracle do modelo relacional (partições, JSON, materialized views)
-static/     index.html, css/style.css, js/app.js, vendor/plotly.min.js
+static/     index.html, css/style.css, js/app.js, vendor/ (plotly.min.js, malha de SP, topojson)
 ```
 
 ## Interface: aba Início e abas de dashboard
@@ -94,6 +95,10 @@ static/     index.html, css/style.css, js/app.js, vendor/plotly.min.js
 - **Exportar**: "Baixar CSV" em cada tabela (separador `;`, vírgula decimal e BOM, para abrir direto no Excel) e
   "Imprimir / PDF" em cada dashboard: imprime só aquela pergunta, em tema claro, com as tabelas abertas e a query
   completa ("Salvar como PDF" na janela de impressão).
+- **Mapa dos municípios**: mapas de SP em ranking de municípios (taxa), polos (% de pacientes de fora + bolhas),
+  internações por leito, UBS por habitante e grupos (K-means). A malha do IBGE fica em
+  `static/vendor/sp_municipios.geojson` (gerada por `etl/build_mapa.py`) e o mapa-base do Plotly em
+  `static/vendor/topojson/`, então os mapas funcionam offline. Com filtro de DRS, o mapa mostra só a região.
 - **Menu de abas fixo**: a barra de abas fica sempre visível no topo, mesmo no fim de abas longas.
 - **Conteúdo da aba**: cabeçalho e KPIs → **Situação** (alertas) → achados → **Por que essa pergunta importa** → gráficos → tabela → **Query SQL (Oracle)**.
 

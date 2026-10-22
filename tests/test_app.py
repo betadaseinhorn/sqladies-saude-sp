@@ -220,3 +220,39 @@ def test_api_aplica_filtros():
     assert r["dashboard"]["filtros"] == ["2025", "DRS VII - Campinas"]
     assert r["filtros_aceitos"]["chaves"] == list(FILTROS_Q["visao_geral"])
     assert any("2025" in b["sql"] for b in r["dashboard"]["sql"])
+
+
+# -------------------------------------------------------------------- mapa ---
+from pathlib import Path  # noqa: E402
+
+from app import db  # noqa: E402
+
+GEOJSON = Path(__file__).resolve().parents[1] / "static" / "vendor" / "sp_municipios.geojson"
+COM_MAPA = ["ranking_municipios", "polos_atracao", "capacidade_municipios", "ubs_internacoes", "clusters"]
+
+
+def _area(anel):
+    return sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(anel, anel[1:])) / 2
+
+
+def test_geojson_cobre_municipios_e_orientacao():
+    g = json.loads(GEOJSON.read_text(encoding="utf-8"))
+    ids = {f["id"] for f in g["features"]}
+    assert ids == set(db.municipios()["cod_mun"].astype(int))
+    # anel externo no sentido horário (o que o Plotly espera)
+    for f in g["features"]:
+        pols = [f["geometry"]["coordinates"]] if f["geometry"]["type"] == "Polygon" else f["geometry"]["coordinates"]
+        assert all(_area(pol[0]) < 0 for pol in pols)
+    assert (GEOJSON.parent / "topojson" / "world_110m.json").exists()
+
+
+@pytest.mark.parametrize("qid", COM_MAPA)
+@pytest.mark.parametrize("params", [{}, {"drs": 6}])
+def test_dashboards_com_mapa(qid, params):
+    ids = {f["id"] for f in json.loads(GEOJSON.read_text(encoding="utf-8"))["features"]}
+    d = dashboards.build(qid, validar_params(params, qid))
+    mapas = [t for c in d["charts"] for t in c["traces"] if t["type"] == "choropleth"]
+    assert mapas and all(t["geojson"] == "sp" and set(t["locations"]) <= ids for t in mapas)
+    if params.get("drs") and "drs" in FILTROS_Q[qid]:  # grupos (K-means) não filtra por DRS
+        regiao = set(db.municipios().query("drs_num == 6")["cod_mun"].astype(int))
+        assert all(set(t["locations"]) <= regiao for t in mapas)
