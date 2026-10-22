@@ -9,12 +9,13 @@ from __future__ import annotations
 import logging
 import math
 import threading
+from functools import lru_cache
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -77,9 +78,8 @@ def _clean(o):
 
 @app.get("/")
 def index():
-    # a landing page entra no passo 3 do redesign; até lá, "/" leva direto à aplicação
-    # (o navegador preserva o #pergunta=… no redirecionamento)
-    return RedirectResponse("/app", status_code=307)
+    """Landing page do DataCare_ (links antigos "/#pergunta=…" são levados a /app pelo script da página)."""
+    return FileResponse(STATIC / "landing.html")
 
 
 @app.get("/app")
@@ -124,6 +124,21 @@ def ask(p: Pergunta):
                    "score": round(m.score, 1), "params": m.params, "dashboard": dash,
                    "filtros_aceitos": filtros_aceitos(m.question.id),
                    "sugestoes": [{"id": q.id, "texto": q.texto} for q in m.sugestoes]})
+
+
+@app.get("/api/resumo")
+def resumo():
+    """Números reais do banco para a landing page (calculados uma vez; o banco é somente leitura)."""
+    return _resumo()
+
+
+@lru_cache(maxsize=1)
+def _resumo() -> dict:
+    anos = db.anos()
+    return {"internacoes": int(db.scalar("SELECT SUM(internacoes) FROM agg_mensal_hosp")),
+            "municipios": int(db.scalar("SELECT COUNT(*) FROM dim_municipio")),
+            "hospitais": int(db.scalar("SELECT COUNT(DISTINCT cnes) FROM agg_mensal_hosp")),
+            "ano_inicio": anos[0], "ano_fim": anos[-1], "analises": len(CATALOGO)}
 
 
 @app.get("/api/health")

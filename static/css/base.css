@@ -3,6 +3,9 @@
    roxo profundo #230E50, lilás #BFAED8, creme #FFFEF3. Paleta dos gráficos validada para
    daltonismo (skill dataviz, validate_palette.js) nos dois temas; status (verde/amarelo/vermelho)
    nunca muda. */
+/* Geist e Geist Mono (Vercel, licença SIL OFL, static/vendor/fonts/Geist-OFL.txt), servidas localmente para funcionar offline */
+@font-face { font-family: "Geist"; src: url("/static/vendor/fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("/static/vendor/fonts/GeistMono-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 :root {
   color-scheme: light;
   --page: #f4f1f9;
@@ -39,9 +42,9 @@
   --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-lg: 16px; --fs-xl: 22px;
   --dur: 160ms; --ease: cubic-bezier(.2, .8, .2, 1);
   --tabbar-h: 47px;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-marca: "DejaVu Sans", Verdana, system-ui, sans-serif;
-  --mono: ui-monospace, "Cascadia Code", Consolas, "Courier New", monospace;
+  --mono: "Geist Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {

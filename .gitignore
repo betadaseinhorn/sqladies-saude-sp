@@ -12,3 +12,7 @@ data/ref/populacao_*.json
 
 # Capa original do grupo (tem nomes e RMs): fica só local; o sistema usa static/marca/capa-topo.webp
 static/marca/capa.png
+
+# Impeccable: esboços e páginas de decisão locais (o contrato da superfície fica em .impeccable/surfaces)
+.impeccable/mocks/
+.impeccable/seeds/

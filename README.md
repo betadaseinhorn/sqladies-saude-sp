@@ -33,7 +33,7 @@ python -m venv .venv
 pip install -r requirements.txt
 
 python pipeline.py                # 1ª vez: baixa cerca de 550 MB e monta data/sqladies.db (10–20 min)
-uvicorn app.main:app              # abra http://localhost:8000 (aplicação em /app)
+uvicorn app.main:app              # landing em http://localhost:8000 · aplicação em /app
 ```
 
 Depois do pipeline, o app não usa a internet: o Plotly está em `static/vendor/` e as fontes são do sistema.
@@ -84,8 +84,20 @@ app/        main.py           FastAPI (/api/questions, /api/ask, /api/filters)
             relevancia.py     por que cada pergunta importa e ações sugeridas conforme os alertas
             sql_oracle.py     query Oracle equivalente de cada dashboard, com os filtros da pergunta
 sql/        oracle_schema.sql DDL Oracle do modelo relacional (partições, JSON, materialized views)
-static/     app.html (aplicação em /app), css/base.css (tokens e marca) + css/app.css, js/app.js, vendor/ (plotly, malha de SP, topojson)
+static/     landing.html (/) + css/landing.css + js/landing.js · app.html (/app) + css/app.css + js/app.js
+            css/base.css (tokens, fontes Geist, marca) · vendor/ (plotly, fontes, malha de SP, topojson) · marca/ (ícone, capa, capturas)
 ```
+
+## Landing page
+
+`/` apresenta o DataCare_ para quem chega ao projeto:
+- problema, como funciona, recursos, dados e ética, resultados relatados pela equipe;
+- uma caixa de pergunta que abre o dashboard direto em `/app#pergunta=…`;
+- números reais do banco (`/api/resumo`).
+
+O conteúdo vem dos slides da banca. O que é do produto entregue à Oracle (Select AI, APEX, Power BI, OES) fica separado do que esta demonstração faz.
+
+O contexto do produto para o design está em `PRODUCT.md`. A tipografia é a Geist (licença OFL), servida localmente.
 
 ## Interface: aba Início e abas de dashboard
 

@@ -65,9 +65,14 @@ Adding a question touches several places: `CATALOGO`, `FILTROS`, `SEGUINTES` (al
 - `matcher._mun_regex()` is a single compiled alternation over the 645 municipality names, longest first. Do not loop over per-name regexes: that overflows `re`'s cache and costs about 16 ms per question.
 
 **Pages**:
-- `/` is the landing page. For now it redirects to `/app`; the landing arrives in redesign step 3.
+- `/` serves the landing page, `static/landing.html` with `css/landing.css` and `js/landing.js`. It does not load Plotly.
+- The landing's question box and its examples link to `/app#pergunta=…`.
+- Old `/#pergunta=…` links are redirected by an inline script in the landing.
+- `/api/resumo` returns the real figures the landing shows.
+- The landing's screenshots live in `static/marca/` (`app-*.webp`, `mapa-*.webp`). They are captured from the running app; recapture them when the app's look changes.
+- `PRODUCT.md` (Impeccable) records product truth and brand commitments. The landing follows the "category standard at Vercel's craft level" direction.
 - `/app` serves `static/app.html`.
-- `static/css/base.css` holds what both pages share: color tokens, fonts, the brand, and global browser surfaces.
+- `static/css/base.css` holds what both pages share: color tokens, Geist fonts (local, OFL), the brand, and global browser surfaces.
 - `static/css/app.css` holds the application's own styles.
 
 **Front-end** (`static/js/app.js`, one IIFE, no framework; Plotly is vendored in `static/vendor/plotly.min.js`):

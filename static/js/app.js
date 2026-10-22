@@ -696,6 +696,17 @@
       }));
       localStorage.setItem(STORE, JSON.stringify({ abas: lista, ativa: ativa === "inicio" ? -1 : [...abas.keys()].indexOf(ativa) }));
     } catch (e) { /* ok */ }
+    atualizarContinuar();
+  }
+
+  // Início: atalhos para as abas abertas ("Continuar de onde parou")
+  function atualizarContinuar() {
+    const sec = $("#continuar");
+    if (!sec) return;
+    sec.hidden = abas.size === 0;
+    $("#continuar-lista").replaceChildren(...[...abas.values()].map((a) => el("button", {
+      type: "button", class: "chip", text: a.text, onclick: () => ativar(a.id),
+    })));
   }
 
   // rola só na horizontal a faixa (abas ou perguntas) até o item ficar visível. scrollIntoView também
@@ -926,7 +937,8 @@
     } catch (e) {
       mostrarFeedback(el("p", { class: "erro", text: "Não consegui carregar as perguntas. Inicie o servidor com: uvicorn app.main:app" }));
     }
-    await Promise.all([filtros, mapa]);
+    // espera a Geist carregar para os gráficos medirem o texto com a fonte certa
+    await Promise.all([filtros, mapa, document.fonts ? document.fonts.ready : null]);
     // reabre as abas da última visita (preferência local; falha em silêncio)
     let salvo = null;
     try { salvo = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { salvo = null; }

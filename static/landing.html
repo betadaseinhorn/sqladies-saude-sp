@@ -1,0 +1,243 @@
+<!doctype html>
+<!-- DataCare_ (grupo SQLadies) — adaptação demonstrativa da aplicação entregue à Oracle -->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DataCare_ · Dados do SUS em decisões</title>
+  <meta name="description" content="DataCare_: pergunte em português e receba um dashboard com dados públicos do SUS (SIH/SUS, CNES e IBGE) dos 645 municípios de São Paulo. Solução do grupo SQLadies no Challenge Oracle + FIAP.">
+  <link rel="icon" type="image/svg+xml" href="/static/marca/favicon.svg">
+  <link rel="preload" href="/static/vendor/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/landing.css">
+  <script>
+    // links antigos "/#pergunta=…" (de antes da landing) continuam abrindo a pergunta na aplicação
+    if (location.hash.startsWith("#pergunta=")) location.replace("/app" + location.hash);
+    try { const t = localStorage.getItem("tema"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="topo">
+    <div class="topo-in">
+      <a class="logo" href="/" aria-label="DataCare_, início">
+        <svg class="marca-ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5.2C12.6 3.9 8.6 5.3 8.3 9.1C5.2 10 4 13.6 5.9 16.3C3.9 18.9 5.3 23.2 9.1 23.3C9.9 26.4 13.4 27.6 16 26"/><path d="M11.4 10.6c1.7.6 2.4 2.9 1.1 4.4"/><path d="M10.2 19.4c1.4-1.1 3.2-.8 4.1.5"/><path d="M16 4.5V27"/><path d="M16 9.5h3.6l2.6-2.6"/><path d="M16 16h7"/><path d="M16 22.5h3.6l2.6 2.6"/><circle cx="23.8" cy="5.4" r="1.9"/><circle cx="25.2" cy="16" r="1.9"/><circle cx="23.8" cy="26.6" r="1.9"/></svg>
+        <span class="marca-texto"><span class="m-data">Data</span><span class="m-care">Care</span><span class="m-u">_</span></span>
+      </a>
+      <nav class="topo-nav" aria-label="Seções">
+        <a href="#problema">Problema</a>
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#recursos">Recursos</a>
+        <a href="#dados">Dados e ética</a>
+        <a href="#resultados">Resultados</a>
+      </nav>
+      <div class="topo-acoes">
+        <a class="icone-link" href="https://github.com/betadaseinhorn/sqladies-saude-sp" target="_blank" rel="noopener" aria-label="Código no GitHub (abre em nova aba)" title="Código no GitHub">
+          <svg class="gh" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.2-.4-1.3.1-2.7 0 0 .8-.3 2.8 1a9.6 9.6 0 0 1 5 0c1.9-1.3 2.8-1 2.8-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.4 4.7-4.6 5 .4.3.7.9.7 1.9V21c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></svg>
+        </a>
+        <button class="icone-link" id="tema-btn" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">
+          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        </button>
+        <a class="btn btn-primario" href="/app">Abrir o DataCare</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo" tabindex="-1">
+    <!-- ------------------------------------------------------------- hero -->
+    <section class="hero" aria-labelledby="hero-titulo">
+      <div class="hero-texto">
+        <h1 id="hero-titulo">Pergunte em português.<br>Receba o dashboard.</h1>
+        <p class="hero-sub">O DataCare_ transforma dados públicos do SUS em respostas para a gestão hospitalar: internações, leitos e sazonalidade dos 645 municípios de São Paulo, com alertas e ações sugeridas.</p>
+        <form class="pergunta" id="pergunta-form" action="/app" autocomplete="off">
+          <label class="sr-only" for="pergunta-campo">Sua pergunta</label>
+          <input id="pergunta-campo" name="pergunta" type="text" maxlength="300" placeholder="Quais hospitais estão mais lotados?" required>
+          <button class="btn btn-primario" type="submit">Perguntar
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </form>
+        <ul class="exemplos" aria-label="Exemplos de perguntas">
+          <li><a href="/app#pergunta=Qual%20o%20panorama%20geral%20das%20interna%C3%A7%C3%B5es%20SUS%20no%20estado%3F">Panorama do estado</a></li>
+          <li><a href="/app#pergunta=Como%20a%20sazonalidade%20das%20doen%C3%A7as%20respirat%C3%B3rias%20varia%20entre%20as%20DRS%3F">Sazonalidade das respiratórias</a></li>
+          <li><a href="/app#pergunta=Compare%20Santos%20e%20Guaruj%C3%A1">Compare Santos e Guarujá</a></li>
+        </ul>
+      </div>
+      <figure class="janela hero-tela">
+        <div class="janela-barra" aria-hidden="true"><i></i><i></i><i></i><span>datacare / app</span></div>
+        <img class="so-claro" src="/static/marca/app-claro.webp" width="2080" height="1440" alt="Dashboard do DataCare_ respondendo &quot;Quais hospitais têm a maior ocupação estimada de leitos?&quot;: 56 de 437 hospitais acima de 85% e situação crítica">
+        <img class="so-escuro" src="/static/marca/app-escuro.webp" width="2080" height="1440" alt="" aria-hidden="true">
+      </figure>
+    </section>
+
+    <section class="numeros" aria-label="O que está no banco de dados">
+      <dl>
+        <div><dt>internações analisadas</dt><dd data-resumo="internacoes">5,7 mi</dd></div>
+        <div><dt>municípios de São Paulo</dt><dd data-resumo="municipios">645</dd></div>
+        <div><dt>hospitais no SIH/SUS</dt><dd data-resumo="hospitais">648</dd></div>
+        <div><dt>análises prontas</dt><dd data-resumo="analises">18</dd></div>
+      </dl>
+      <p class="numeros-nota">Dados reais de <span data-resumo="periodo">2024–2025</span>, consultados agora no banco desta demonstração.</p>
+    </section>
+
+    <!-- --------------------------------------------------------- problema -->
+    <section class="secao" id="problema" aria-labelledby="problema-titulo">
+      <div class="secao-cab">
+        <h2 id="problema-titulo">Os dados existem.<br>A decisão chega tarde.</h2>
+        <p>A gestão hospitalar pública opera sob alta pressão: a demanda por leitos cresce e os recursos são escassos. DATASUS, SIH/SUS e CNES publicam um grande volume de dados, mas eles estão fragmentados, descentralizados e dependem de tratamento manual complexo. O resultado é uma gestão que reage em vez de planejar.</p>
+      </div>
+      <ol class="cadeia" aria-label="Consequências">
+        <li><strong>Gargalos e superlotação</strong><span>Leitos no limite e filas que só aparecem quando já são crise.</span></li>
+        <li><strong>Desperdício de recursos públicos</strong><span>Verba aplicada sem enxergar onde a demanda realmente está.</span></li>
+        <li><strong>Esforço humano desperdiçado</strong><span>Equipes montando relatórios à mão em vez de decidir.</span></li>
+      </ol>
+      <div class="agora">
+        <h3>Por que resolver agora</h3>
+        <dl>
+          <div><dt>Pressão crescente</dt><dd>O envelhecimento da população e o cenário pós-pandemia tornam insustentável a gestão de "apagar incêndios".</dd></div>
+          <div><dt>Oportunidade tecnológica</dt><dd>Bancos de dados autônomos, IA que traduz linguagem natural em SQL e machine learning permitem tratar esses dados com segurança.</dd></div>
+          <div><dt>Custo da demora</dt><dd>Adiar a modernização perpetua o desperdício de verbas públicas e mantém cidadãos à espera de atendimento adequado.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------- como funciona -->
+    <section class="secao" id="como-funciona" aria-labelledby="como-titulo">
+      <div class="secao-cab">
+        <h2 id="como-titulo">Da pergunta à decisão, sem escrever SQL.</h2>
+        <p>Quem gere não precisa saber programar. O DataCare_ entende a pergunta, consulta as bases públicas unificadas e devolve um dashboard que já diz onde está o problema e o que pode ser feito.</p>
+      </div>
+      <ol class="passos">
+        <li>
+          <h3>Pergunte</h3>
+          <p>Em português, do jeito que você falaria: um município, uma DRS, um ano ou uma causa de internação.</p>
+          <div class="passo-visual pv-pergunta" aria-hidden="true"><span>Sazonalidade da dengue entre as DRS em 2025</span><i></i></div>
+        </li>
+        <li>
+          <h3>O DataCare_ consulta os dados</h3>
+          <p>A pergunta vira uma consulta SQL sobre internações, leitos e população. A query aparece em cada dashboard.</p>
+          <pre class="passo-visual pv-sql" aria-hidden="true"><code><span class="kw">SELECT</span> m.drs_nome, a.mes_inter,
+       <span class="fn">SUM</span>(a.internacoes) <span class="kw">AS</span> n
+  <span class="kw">FROM</span> agg_mensal_hosp a
+  <span class="kw">JOIN</span> dim_municipio m <span class="kw">ON</span> …
+ <span class="kw">WHERE</span> a.cap_cid = <span class="str">'I'</span>
+ <span class="kw">GROUP BY</span> m.drs_nome, a.mes_inter</code></pre>
+        </li>
+        <li>
+          <h3>Decida com alertas e ações</h3>
+          <p>Cada indicador é classificado em Aceitável, Alerta ou Crítico, com o motivo e ações sugeridas.</p>
+          <ul class="passo-visual pv-alertas" aria-hidden="true">
+            <li><b class="selo st-critico">Crítico</b>Maior ocupação estimada<em>129%</em></li>
+            <li><b class="selo st-alerta">Alerta</b>Hospitais acima de 85%<em>13%</em></li>
+            <li><b class="selo st-aceitavel">Aceitável</b>Ocupação mediana<em>56%</em></li>
+          </ul>
+        </li>
+      </ol>
+      <p class="honesto"><strong>Transparência:</strong> no projeto entregue à Oracle, a tradução da pergunta em SQL é feita pelo Oracle Select AI sobre o Autonomous Database. Esta demonstração funciona offline e reconhece as perguntas a partir de um catálogo de 18 análises, sem modelo de linguagem.</p>
+    </section>
+
+    <!-- --------------------------------------------------------- recursos -->
+    <section class="secao" id="recursos" aria-labelledby="recursos-titulo">
+      <div class="secao-cab">
+        <h2 id="recursos-titulo">O que você encontra no DataCare_.</h2>
+        <p>Cada item abaixo abre uma pergunta real na aplicação.</p>
+      </div>
+      <div class="recursos">
+        <figure class="janela recursos-tela">
+          <img class="so-claro" src="/static/marca/mapa-claro.webp" width="1544" height="1016" loading="lazy" alt="Mapa dos 645 municípios de São Paulo coloridos pelos três grupos de perfil de demanda encontrados pelo K-means">
+          <img class="so-escuro" src="/static/marca/mapa-escuro.webp" width="1544" height="1016" loading="lazy" alt="" aria-hidden="true">
+        </figure>
+        <ul class="recursos-lista">
+          <li><a href="/app#pergunta=Como%20as%20interna%C3%A7%C3%B5es%20variam%20ao%20longo%20dos%20meses%3F"><strong>Sazonalidade</strong><span>Meses de pico por região e por causa, com decomposição da tendência.</span></a></li>
+          <li><a href="/app#pergunta=Quais%20hospitais%20t%C3%AAm%20a%20maior%20ocupa%C3%A7%C3%A3o%20estimada%20de%20leitos%3F"><strong>Capacidade e ocupação de leitos</strong><span>Hospitais e municípios no limite, com alertas por região.</span></a></li>
+          <li><a href="/app#pergunta=Quais%20grupos%20de%20munic%C3%ADpios%20t%C3%AAm%20perfis%20de%20demanda%20parecidos%3F"><strong>Perfis com machine learning</strong><span>Municípios agrupados por K-means em perfis de demanda, no mapa.</span></a></li>
+          <li><a href="/app#pergunta=Quais%20os%2020%20munic%C3%ADpios%20com%20mais%20interna%C3%A7%C3%B5es%20por%20habitante%3F"><strong>Rankings e comparações</strong><span>Municípios e hospitais lado a lado, com filtros de ano, DRS e causa.</span></a></li>
+          <li><a href="/app#pergunta=Quais%20fatores%20est%C3%A3o%20associados%20ao%20aumento%20da%20demanda%3F"><strong>Fatores da demanda</strong><span>O que se associa ao aumento das internações, com regressão e correlação.</span></a></li>
+          <li><a href="/app"><strong>Tudo exportável</strong><span>Query em Oracle SQL, tabelas em CSV e cada dashboard em PDF.</span></a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------ dados -->
+    <section class="secao" id="dados" aria-labelledby="dados-titulo">
+      <div class="secao-cab">
+        <h2 id="dados-titulo">Dados públicos, tratados com responsabilidade.</h2>
+        <p>Três bases que antes viviam separadas, unificadas e padronizadas para responder em minutos.</p>
+      </div>
+      <div class="dados">
+        <table class="fontes">
+          <caption class="sr-only">Fontes de dados</caption>
+          <thead><tr><th scope="col">Fonte</th><th scope="col">O que traz</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">SIH/SUS <small>DATASUS</small></th><td>Internações: causa (CID-10), permanência, valores pagos, óbitos e municípios de residência e de internação.</td></tr>
+            <tr><th scope="row">CNES <small>API de Dados Abertos</small></th><td>Hospitais, unidades básicas de saúde e leitos por estabelecimento.</td></tr>
+            <tr><th scope="row">IBGE <small>SIDRA</small></th><td>População por município, base das taxas por habitante.</td></tr>
+          </tbody>
+        </table>
+        <div class="governanca">
+          <h3>Governança e ética</h3>
+          <p>Privacidade desde o desenho, conformidade com a LGPD e uso do Oracle Ethics Shield para garantir a segurança da informação no projeto entregue.</p>
+          <h3>Tecnologia do projeto entregue à Oracle</h3>
+          <ul class="chips-tec">
+            <li>Oracle Autonomous Database</li><li>Oracle Select AI</li><li>OML4Py</li><li>Oracle APEX</li><li>Oracle Ethics Shield</li><li>Power BI</li>
+          </ul>
+          <h3>Nesta demonstração</h3>
+          <ul class="chips-tec chips-tec-sec">
+            <li>Python</li><li>FastAPI</li><li>SQLite</li><li>Plotly</li><li>Funciona offline</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------- resultados -->
+    <section class="secao" id="resultados" aria-labelledby="resultados-titulo">
+      <div class="secao-cab">
+        <h2 id="resultados-titulo">Resultados que a equipe relatou.</h2>
+        <p>Números do projeto entregue à Oracle, relatados pela equipe SQLadies. Não são medições desta demonstração.</p>
+      </div>
+      <dl class="resultados">
+        <div><dd>−85%</dd><dt>no tempo de decisão em situações de crise</dt></div>
+        <div><dd>−70%</dd><dt>na dependência de TI para gerar relatórios</dt></div>
+      </dl>
+      <div class="proximos">
+        <h3>Próximos passos</h3>
+        <ol>
+          <li>Expandir o modelo preditivo.</li>
+          <li>Implementar alertas automáticos.</li>
+          <li>Escalar a solução para redes estaduais de saúde.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------------ final -->
+    <section class="final" aria-labelledby="final-titulo">
+      <div class="final-texto">
+      <h2 id="final-titulo">Faça sua primeira pergunta.</h2>
+      <p>Sem cadastro, sem SQL. A demonstração abre direto no navegador.</p>
+      <div class="final-acoes">
+        <a class="btn btn-claro" href="/app">Abrir o DataCare</a>
+        <a class="btn btn-contorno" href="https://www.youtube.com/watch?v=zK9VKLOwr8s" target="_blank" rel="noopener">Assistir ao pitch
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg><span class="sr-only">(abre o YouTube em nova aba)</span></a>
+      </div>
+      </div>
+      <img class="final-capa" src="/static/marca/capa-topo.webp" width="1920" height="767" loading="lazy"
+           alt="Capa do projeto: DataCare_, Transformando dados em cuidado e decisão, SQLadies, Challenge Oracle + FIAP">
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div class="rodape-in">
+      <span class="marca-texto"><span class="m-data">Data</span><span class="m-care">Care</span><span class="m-u">_</span></span>
+      <p>Solução do grupo <strong>SQLadies</strong> · Challenge Oracle + FIAP.<br>
+        Adaptação demonstrativa da aplicação entregue à Oracle. Fontes: SIH/SUS, CNES e IBGE.</p>
+      <nav aria-label="Links do rodapé">
+        <a href="/app">Aplicação</a>
+        <a href="https://github.com/betadaseinhorn/sqladies-saude-sp" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.youtube.com/watch?v=zK9VKLOwr8s" target="_blank" rel="noopener">Pitch</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/static/js/landing.js" defer></script>
+</body>
+</html>
