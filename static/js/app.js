@@ -1,4 +1,4 @@
-/* SQLadies — adaptação demonstrativa da aplicação entregue à Oracle.
+/* DataCare_ (grupo SQLadies) — adaptação demonstrativa da aplicação entregue à Oracle.
    Aba "Início" fixa com a caixa de pergunta centralizada; cada pergunta abre uma aba
    com o dashboard (alertas + gráficos + tabela + query Oracle). Sem dependências além do Plotly local. */
 (() => {
@@ -599,7 +599,9 @@
     t.dash = montarDash(t, res, (p, f) => refazerTurno(a, t, p, f));
     t.el = el("section", { class: "turno", "data-n": String(n), "aria-label": `Pergunta ${n}` },
       el("div", { class: "so-impressao" },
-        el("strong", { text: "SQLadies · adaptação demonstrativa da aplicação entregue à Oracle" }),
+        el("strong", {}, el("span", { class: "marca-texto" }, el("span", { class: "m-data", text: "Data" }),
+          el("span", { class: "m-care", text: "Care" }), el("span", { class: "m-u", text: "_" })),
+        " · grupo SQLadies · adaptação demonstrativa da aplicação entregue à Oracle"),
         el("span", { text: `Pergunta: “${t.text}” · ${new Date().toLocaleDateString("pt-BR")}` })),
       el("div", { class: "balao-linha" }, el("div", { class: "balao" },
         el("span", { class: "balao-quem", text: `Você · pergunta ${n}` }), el("p", { text: t.text }))),

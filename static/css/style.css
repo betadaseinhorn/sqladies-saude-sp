@@ -1,27 +1,33 @@
-/* SQLadies — adaptação demonstrativa da aplicação entregue à Oracle
-   Tema claro/escuro com tokens (paleta de dados validada para daltonismo) */
+/* DataCare_ (grupo SQLadies) — adaptação demonstrativa da aplicação entregue à Oracle
+   Tema claro/escuro com tokens. Cores da marca tiradas da capa do grupo: violeta #7E3EE0,
+   roxo profundo #230E50, lilás #BFAED8, creme #FFFEF3. Paleta dos gráficos validada para
+   daltonismo (skill dataviz, validate_palette.js) nos dois temas; status (verde/amarelo/vermelho)
+   nunca muda. */
 :root {
   color-scheme: light;
-  --page: #f6f6f3;
-  --surface: #fcfcfb;
-  --surface-2: #f1f0ec;
-  --border: rgba(11, 11, 11, 0.10);
-  --text: #0b0b0b;
-  --text-2: #52514e;
-  --muted: #898781;
-  --grid: #e1e0d9;
-  --axis: #c3c2b7;
-  --accent: #2a78d6;
-  --accent-ink: #1c5cab;
-  --accent-wash: #e6f0fc;
-  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 24px rgba(0,0,0,.06);
-  --code-bg: #f4f3ef;
-  --code-kw: #1c5cab; --code-str: #006300; --code-num: #a3460f; --code-com: #898781; --code-fn: #6250d6;
+  --page: #f4f1f9;
+  --surface: #fffef8;
+  --surface-2: #f1ecf8;
+  --tabbar: #ebe5f5;
+  --border: rgba(35, 14, 80, 0.11);
+  --text: #1d1433;
+  --text-2: #4e3d70;
+  --muted: #7f7397;
+  --grid: #e7e1ef;
+  --axis: #cbc1da;
+  --accent: #7e3ee0;
+  --accent-ink: #5f27b8;
+  --accent-wash: #efe7fc;
+  --marca-data: #7e3ee0;
+  --marca-care: #230e50;
+  --shadow: 0 1px 2px rgba(35,14,80,.05), 0 6px 24px rgba(35,14,80,.07);
+  --code-bg: #f6f2fb;
+  --code-kw: #5f27b8; --code-str: #006300; --code-num: #a3460f; --code-com: #7f7397; --code-fn: #b52a5e;
 
-  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
-  --s5: #e87ba4; --s6: #008300; --s7: #6250d6; --s8: #e34948;
-  --div-neg: #2a78d6; --div-mid: #f0efec; --div-pos: #e34948;
-  --seq-0: #cde2fb; --seq-1: #0d366b;
+  --s1: #7e3ee0; --s2: #eb6834; --s3: #0e9aa7; --s4: #d6336c;
+  --s5: #c99a2e; --s6: #3b5bdb; --s7: #9c3f7a; --s8: #6b8e23;
+  --div-neg: #7e3ee0; --div-mid: #f0efec; --div-pos: #eb6834;
+  --seq-0: #ede5fb; --seq-1: #230e50;
 
   /* status (fixo, nunca tematizado) + lavagens para fundo */
   --ok: #0ca30c; --warn: #fab219; --crit: #d03b3b;
@@ -29,37 +35,39 @@
 
   --radius: 14px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-marca: "DejaVu Sans", Verdana, system-ui, sans-serif;
   --mono: ui-monospace, "Cascadia Code", Consolas, "Courier New", monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321;
-    --border: rgba(255,255,255,0.10); --text: #f0efec; --text-2: #c3c2b7; --muted: #898781;
-    --grid: #2c2c2a; --axis: #383835; --accent: #3987e5; --accent-ink: #86b6ef; --accent-wash: #16263a;
-    --shadow: none; --code-bg: #141413;
-    --code-kw: #86b6ef; --code-str: #0ca30c; --code-num: #ec835a; --code-com: #898781; --code-fn: #9085e9;
-    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
-    --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
-    --div-neg: #3987e5; --div-mid: #383835; --div-pos: #e66767;
-    --seq-0: #16263a; --seq-1: #9ec5f4;
+    --page: #120a22; --surface: #1c1430; --surface-2: #251a3d; --tabbar: #170f29;
+    --border: rgba(255,255,255,0.10); --text: #efeaf7; --text-2: #c9bfe0; --muted: #9286ab;
+    --grid: #2c2342; --axis: #3d3358; --accent: #8d4be8; --accent-ink: #c4a6f7; --accent-wash: #2a1c48;
+    --marca-data: #a77bf3; --marca-care: #efeaf7;
+    --shadow: none; --code-bg: #150e26;
+    --code-kw: #c4a6f7; --code-str: #0ca30c; --code-num: #ec835a; --code-com: #9286ab; --code-fn: #e0517f;
+    --s1: #9a63ef; --s2: #d95926; --s3: #129aa6; --s4: #e0517f;
+    --s5: #b0852a; --s6: #5b7cf0; --s7: #b0568f; --s8: #7f9e2e;
+    --div-neg: #9a63ef; --div-mid: #3a3542; --div-pos: #d95926;
+    --seq-0: #2a1c48; --seq-1: #d9c8fb;
     --ok-wash: #142614; --warn-wash: #2b2410; --crit-wash: #2d1616;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232321;
-  --border: rgba(255,255,255,0.10); --text: #f0efec; --text-2: #c3c2b7; --muted: #898781;
-  --grid: #2c2c2a; --axis: #383835; --accent: #3987e5; --accent-ink: #86b6ef; --accent-wash: #16263a;
-  --shadow: none; --code-bg: #141413;
-  --code-kw: #86b6ef; --code-str: #0ca30c; --code-num: #ec835a; --code-com: #898781; --code-fn: #9085e9;
-  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
-  --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
-  --div-neg: #3987e5; --div-mid: #383835; --div-pos: #e66767;
-  --seq-0: #16263a; --seq-1: #9ec5f4;
+  --page: #120a22; --surface: #1c1430; --surface-2: #251a3d; --tabbar: #170f29;
+  --border: rgba(255,255,255,0.10); --text: #efeaf7; --text-2: #c9bfe0; --muted: #9286ab;
+  --grid: #2c2342; --axis: #3d3358; --accent: #8d4be8; --accent-ink: #c4a6f7; --accent-wash: #2a1c48;
+  --marca-data: #a77bf3; --marca-care: #efeaf7;
+  --shadow: none; --code-bg: #150e26;
+  --code-kw: #c4a6f7; --code-str: #0ca30c; --code-num: #ec835a; --code-com: #9286ab; --code-fn: #e0517f;
+  --s1: #9a63ef; --s2: #d95926; --s3: #129aa6; --s4: #e0517f;
+  --s5: #b0852a; --s6: #5b7cf0; --s7: #b0568f; --s8: #7f9e2e;
+  --div-neg: #9a63ef; --div-mid: #3a3542; --div-pos: #d95926;
+  --seq-0: #2a1c48; --seq-1: #d9c8fb;
   --ok-wash: #142614; --warn-wash: #2b2410; --crit-wash: #2d1616;
 }
-
 * { box-sizing: border-box; }
 html { height: 100%; }
 body { min-height: 100%; margin: 0; }
@@ -69,12 +77,16 @@ button, textarea { font: inherit; color: inherit; }
 .ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 /* ---------------------------------------------------------------- abas --- */
-.tabbar { display: flex; align-items: flex-end; gap: 8px; padding: 8px 12px 0; background: var(--surface-2);
+.tabbar { display: flex; align-items: flex-end; gap: 8px; padding: 8px 12px 0; background: var(--tabbar);
   border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
-.logo { align-self: center; padding-bottom: 6px; }
-.logo svg { width: 28px; height: 28px; display: block; }
-.logo rect { fill: var(--accent); }
-.logo path { fill: #fff; }
+.logo { align-self: center; padding-bottom: 6px; display: flex; align-items: center; gap: 6px; color: var(--marca-data); }
+.marca-ico { width: 28px; height: 28px; display: block; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round; }
+/* logo-texto DataCare_: "Data" e "_" em violeta, "Care" em roxo profundo (claro em tema escuro) */
+.marca-texto { font-family: var(--font-marca); font-weight: 700; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
+.marca-texto .m-data, .marca-texto .m-u { color: var(--marca-data); }
+.marca-texto .m-care { color: var(--marca-care); }
+.logo .marca-texto { font-size: 17px; }
 .tabs { flex: 1; display: flex; gap: 2px; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; min-width: 0; }
 .tab { position: relative; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px 0 12px;
   min-width: 0; max-width: 240px; flex: 0 1 240px; border: 0; border-radius: 10px 10px 0 0; background: transparent;
@@ -114,10 +126,11 @@ button, textarea { font: inherit; color: inherit; }
 
 /* Início: caixa centralizada */
 .home-panel { min-height: calc(100vh - 47px); min-height: calc(100dvh - 47px); display: flex; }
-.home { width: 100%; max-width: 760px; margin: auto; display: flex; flex-direction: column; align-items: center; text-align: center;
+.home { width: 100%; max-width: 820px; margin: auto; display: flex; flex-direction: column; align-items: center; text-align: center;
   padding: 6vh 0 2vh; }
-.home-brand { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
-.brand-name { font-weight: 750; font-size: 15px; letter-spacing: .02em; color: var(--accent-ink); }
+.home-capa { width: 100%; margin: 0 0 18px; border-radius: 18px; overflow: hidden; line-height: 0; background: #8134ec;
+  box-shadow: var(--shadow); }
+.home-capa img { width: 100%; height: auto; display: block; }
 .brand-sub { font-size: 12.5px; color: var(--muted); }
 .home h1 { margin: 6px 0 22px; font-size: clamp(22px, 3.2vw, 30px); letter-spacing: -0.02em; line-height: 1.2; font-weight: 650; }
 .composer { width: 100%; display: flex; gap: 8px; align-items: flex-end; background: var(--surface); border: 1px solid var(--border);
@@ -144,6 +157,7 @@ textarea { flex: 1; border: 0; outline: 0; background: transparent; resize: none
 .chip:hover { border-color: var(--accent); background: var(--accent-wash); }
 .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .home-foot { margin-top: 36px; font-size: 11.5px; color: var(--muted); }
+.home-foot .marca-texto { font-size: 12px; }
 
 /* ------------------------------------------------------------- dashboard --- */
 .dash { max-width: 1240px; margin: 0 auto; }
@@ -304,10 +318,11 @@ pre.sql .com { color: var(--code-com); font-style: italic; }
   .panel { padding: 16px 16px 40px; }
   .turnos-nav { margin: -16px -16px 16px; padding: 8px 16px; }
   .balao { max-width: 92%; }
+  .logo .marca-texto { display: none; }
   .filtro { flex: 1 1 140px; }
   .filtro select, .filtro input { width: 100%; max-width: 100%; }
   .tabbar { padding: 6px 8px 0; gap: 6px; }
-  .logo { display: none; }
+  .marca-ico { width: 24px; height: 24px; } /* no celular só o ícone, sem o texto */
   .tab { max-width: 170px; flex-basis: 170px; }
   .home { padding-top: 3vh; }
   .composer { padding: 8px 8px 8px 14px; border-radius: 18px; }

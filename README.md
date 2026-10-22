@@ -1,10 +1,14 @@
-# SQLadies · Dashboards de internações SUS por pergunta (SP)
+# DataCare_ · Dashboards de internações SUS por pergunta (SP)
 
 > **Sobre este repositório.** Este projeto é uma **adaptação do trabalho SQLadies entregue à Oracle** e serve como
 > **meio demonstrativo da aplicação entregue**. Ele reproduz a mesma proposta (perguntas em linguagem natural que geram
 > dashboards a partir do SIH/SUS e do CNES) numa versão leve, que roda localmente e offline. O modelo relacional e as
 > queries são apresentados no dialeto **Oracle SQL** (`sql/oracle_schema.sql` e o bloco "Query SQL" de cada dashboard).
 > Por baixo, a demonstração usa SQLite.
+
+**DataCare_** ("Transformando dados em cuidado e decisão") é a solução do grupo **SQLadies** no Challenge Oracle + FIAP.
+A identidade visual (violeta `#7E3EE0`, roxo profundo `#230E50`, lilás e creme) vem da capa do grupo. A paleta dos gráficos foi
+validada para daltonismo nos temas claro e escuro (`static/css/style.css`); o logo e o ícone ficam em `static/marca/`.
 
 Página web com uma aba **Início** (caixa de pergunta centralizada): o usuário escolhe ou digita uma pergunta e uma
 **nova aba** é aberta com o dashboard gerado na hora: KPIs, **alertas (Aceitável / Alerta / Crítico)**, gráficos

@@ -9,3 +9,6 @@ data/raw/
 data/processed/
 data/sqladies.db
 data/ref/populacao_*.json
+
+# Capa original do grupo (tem nomes e RMs): fica só local; o sistema usa static/marca/capa-topo.webp
+static/marca/capa.png

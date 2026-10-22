@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-SQLadies: a FastAPI + vanilla JS app that turns a question in Portuguese into a dashboard about SUS hospitalizations in the 645 municipalities of São Paulo state, 2024–2025.
+DataCare_ (the product of the group SQLadies, Challenge Oracle + FIAP): a FastAPI + vanilla JS app that turns a question in Portuguese into a dashboard about SUS hospitalizations in the 645 municipalities of São Paulo state, 2024–2025.
 - Data comes from SIH/SUS and CNES.
 - It runs fully offline: no LLM and no CDN at runtime.
 
@@ -78,7 +78,8 @@ Adding a question touches several places: `CATALOGO`, `FILTROS`, `SEGUINTES` (al
 - Plotly's base topojson is served from `static/vendor/topojson/` through the `topojsonURL` config. Without it, Plotly fetches from cdn.plot.ly.
 
 **CSS**:
-- Colors are tokens on `:root`, with dark-mode overrides.
+- Colors are tokens on `:root`, with dark-mode overrides. Brand: violet `#7E3EE0`, deep purple `#230E50`, lilac and cream, taken from the group's cover. The chart series `--s1..--s8` (violet, orange, petrol green, raspberry, ochre, indigo, plum, olive) were checked with the dataviz skill's `validate_palette.js` in both themes; re-run it if you change them. Status colors never change.
+- `static/marca/` holds `favicon.svg` (the brain-circuit icon) and `capa-topo.webp` (the cover cropped above the members' names). The original `capa.png` has names and student IDs, so it is gitignored; never commit it.
 - Use prefixed class names (`tab-home`, `n-alerta`, `relev-*`, `aba-*`, `turno-*`). Generic names such as `.home` and `.alerta` already collided with existing components.
 - `body` uses `min-height` rather than a fixed `height`, so the sticky tab bar stays visible on long pages.
 - Printing uses `body.modo-impressao` together with `.turno.imprimir`.
