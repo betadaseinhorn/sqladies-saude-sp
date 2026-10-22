@@ -120,6 +120,7 @@ Adding a question touches several places: `CATALOGO`, `FILTROS`, `SEGUINTES` (al
     - Entrance classes are temporary (`marcarEntrada()`), so animations do not replay when a hidden tab is shown again.
     - Reduced motion keeps the fades and removes movement. Do not go back to a global `animation: none !important`.
     - The landing reveals blocks once with an IntersectionObserver, only when JS adds `.revelar-js`.
+    - Dashboards sit in a glass reading column (`.turno`, `.aba-pergunta`, `.esqueleto`, `.erro-box`) built from the `--vidro*` tokens, so text never sits straight on the glow. Keep the cards inside solid.
     - The brand glow is a fixed `body::before` on both pages. The landing meshes (`canvas[data-malha]`, `malha()` in landing.js) are decorative, use at most 150 points, and pause offscreen. Keep them out of the app's dashboards: data there must not compete with motion.
 
 ## Testing notes

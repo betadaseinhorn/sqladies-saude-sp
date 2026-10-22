@@ -47,6 +47,11 @@
   /* brilho da marca atrás da área da pergunta (mais forte no tema escuro) */
   --brilho-violeta: color-mix(in srgb, var(--accent) 16%, transparent);
   --brilho-laranja: color-mix(in srgb, var(--s2) 9%, transparent);
+  /* vidro (coluna de leitura): translúcido, desfocado, com reflexo claro na borda */
+  --vidro: color-mix(in srgb, var(--page) 62%, transparent);
+  --vidro-borda: rgba(255, 255, 255, .7);
+  --vidro-reflexo: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 0 0 1px rgba(255, 255, 255, .35);
+  --vidro-sombra: 0 1px 2px rgba(35, 14, 80, .05), 0 20px 50px rgba(35, 14, 80, .12);
   --tabbar-h: 56px;
   --font: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-marca: "DejaVu Sans", Verdana, system-ui, sans-serif;
@@ -59,6 +64,8 @@
     --grid: #2c2342; --axis: #3d3358; --accent: #8d4be8; --accent-ink: #c4a6f7; --accent-wash: #2a1c48;
     --marca-data: #a77bf3; --marca-care: #efeaf7;
     --shadow: none; --code-bg: #150e26;
+    --vidro: color-mix(in srgb, var(--page) 55%, transparent); --vidro-borda: rgba(255, 255, 255, .10);
+    --vidro-reflexo: inset 0 1px 0 rgba(255, 255, 255, .10); --vidro-sombra: 0 1px 2px rgba(0, 0, 0, .3), 0 20px 50px rgba(0, 0, 0, .35);
     --brilho-violeta: color-mix(in srgb, var(--accent) 34%, transparent); --brilho-laranja: color-mix(in srgb, var(--s2) 16%, transparent);
     --code-kw: #c4a6f7; --code-str: #0ca30c; --code-num: #ec835a; --code-com: #9286ab; --code-fn: #e0517f;
     --s1: #9a63ef; --s2: #d95926; --s3: #c4a6f7;
@@ -73,6 +80,8 @@
   --grid: #2c2342; --axis: #3d3358; --accent: #8d4be8; --accent-ink: #c4a6f7; --accent-wash: #2a1c48;
   --marca-data: #a77bf3; --marca-care: #efeaf7;
   --shadow: none; --code-bg: #150e26;
+  --vidro: color-mix(in srgb, var(--page) 55%, transparent); --vidro-borda: rgba(255, 255, 255, .10);
+  --vidro-reflexo: inset 0 1px 0 rgba(255, 255, 255, .10); --vidro-sombra: 0 1px 2px rgba(0, 0, 0, .3), 0 20px 50px rgba(0, 0, 0, .35);
   --brilho-violeta: color-mix(in srgb, var(--accent) 34%, transparent); --brilho-laranja: color-mix(in srgb, var(--s2) 16%, transparent);
   --code-kw: #c4a6f7; --code-str: #0ca30c; --code-num: #ec835a; --code-com: #9286ab; --code-fn: #e0517f;
   --s1: #9a63ef; --s2: #d95926; --s3: #c4a6f7;
