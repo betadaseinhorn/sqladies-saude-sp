@@ -1,7 +1,7 @@
 /* DataCare_ (grupo SQLadies) · base compartilhada (landing e aplicação) — adaptação demonstrativa da aplicação entregue à Oracle
    Tema claro/escuro com tokens. Cores da marca tiradas da capa do grupo: violeta #7E3EE0,
-   roxo profundo #230E50, lilás #BFAED8, creme #FFFEF3. Paleta dos gráficos validada para
-   daltonismo (skill dataviz, validate_palette.js) nos dois temas; status (verde/amarelo/vermelho)
+   roxo profundo #230E50, lilás #BFAED8, creme #FFFEF3. Gráficos só com violeta, laranja e lilás (no máximo 3 séries),
+   validados para daltonismo (skill dataviz, validate_palette.js); a 3ª série também muda de forma (tracejado, losango); status (verde/amarelo/vermelho)
    nunca muda. */
 /* Geist e Geist Mono (Vercel, licença SIL OFL, static/vendor/fonts/Geist-OFL.txt), servidas localmente para funcionar offline */
 @font-face { font-family: "Geist"; src: url("/static/vendor/fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
@@ -11,7 +11,6 @@
   --page: #f4f1f9;
   --surface: #fffef8;
   --surface-2: #f1ecf8;
-  --tabbar: #ebe5f5;
   --border: rgba(35, 14, 80, 0.11);
   --text: #1d1433;
   --text-2: #4e3d70;
@@ -27,8 +26,8 @@
   --code-bg: #f6f2fb;
   --code-kw: #5f27b8; --code-str: #006300; --code-num: #a3460f; --code-com: #6a5e82; --code-fn: #b52a5e;
 
-  --s1: #7e3ee0; --s2: #eb6834; --s3: #0e9aa7; --s4: #d6336c;
-  --s5: #c99a2e; --s6: #3b5bdb; --s7: #9c3f7a; --s8: #6b8e23;
+  /* séries só com as cores da marca: violeta, laranja e lilás (no máximo 3 séries por gráfico) */
+  --s1: #7e3ee0; --s2: #eb6834; --s3: #9e7fd8;
   --div-neg: #7e3ee0; --div-mid: #f0efec; --div-pos: #eb6834;
   --seq-0: #ede5fb; --seq-1: #230e50;
 
@@ -39,11 +38,16 @@
   --radius: 14px;
   /* escala de forma e movimento (cores ficam acima, intocadas) */
   --r-sm: 8px; --r-md: 12px; --r-lg: 16px;
-  --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-lg: 16px; --fs-xl: 22px;
+  --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-base: 15px; --fs-lg: 16px; --fs-xl: 22px;
   --dur: 160ms; --ease: cubic-bezier(.2, .8, .2, 1);
+  /* movimento: ease-out forte para entrar/sair, ease-in-out para o que se move na tela */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1); --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   /* layout: margem fluida, largura máxima de conteúdo e medida de leitura */
   --gutter: clamp(16px, 4vw, 64px); --wide: 1600px; --measure: 68ch;
-  --tabbar-h: 47px;
+  /* brilho da marca atrás da área da pergunta (mais forte no tema escuro) */
+  --brilho-violeta: color-mix(in srgb, var(--accent) 16%, transparent);
+  --brilho-laranja: color-mix(in srgb, var(--s2) 9%, transparent);
+  --tabbar-h: 56px;
   --font: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-marca: "DejaVu Sans", Verdana, system-ui, sans-serif;
   --mono: "Geist Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
@@ -51,14 +55,13 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --page: #120a22; --surface: #1c1430; --surface-2: #251a3d; --tabbar: #170f29;
-    --border: rgba(255,255,255,0.10); --text: #efeaf7; --text-2: #c9bfe0; --muted: #9286ab;
+    --page: #120a22; --surface: #1c1430; --surface-2: #251a3d; --border: rgba(255,255,255,0.10); --text: #efeaf7; --text-2: #c9bfe0; --muted: #9286ab;
     --grid: #2c2342; --axis: #3d3358; --accent: #8d4be8; --accent-ink: #c4a6f7; --accent-wash: #2a1c48;
     --marca-data: #a77bf3; --marca-care: #efeaf7;
     --shadow: none; --code-bg: #150e26;
+    --brilho-violeta: color-mix(in srgb, var(--accent) 34%, transparent); --brilho-laranja: color-mix(in srgb, var(--s2) 16%, transparent);
     --code-kw: #c4a6f7; --code-str: #0ca30c; --code-num: #ec835a; --code-com: #9286ab; --code-fn: #e0517f;
-    --s1: #9a63ef; --s2: #d95926; --s3: #129aa6; --s4: #e0517f;
-    --s5: #b0852a; --s6: #5b7cf0; --s7: #b0568f; --s8: #7f9e2e;
+    --s1: #9a63ef; --s2: #d95926; --s3: #c4a6f7;
     --div-neg: #9a63ef; --div-mid: #3a3542; --div-pos: #d95926;
     --seq-0: #2a1c48; --seq-1: #d9c8fb;
     --ok-wash: #142614; --warn-wash: #2b2410; --crit-wash: #2d1616;
@@ -66,18 +69,18 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #120a22; --surface: #1c1430; --surface-2: #251a3d; --tabbar: #170f29;
-  --border: rgba(255,255,255,0.10); --text: #efeaf7; --text-2: #c9bfe0; --muted: #9286ab;
+  --page: #120a22; --surface: #1c1430; --surface-2: #251a3d; --border: rgba(255,255,255,0.10); --text: #efeaf7; --text-2: #c9bfe0; --muted: #9286ab;
   --grid: #2c2342; --axis: #3d3358; --accent: #8d4be8; --accent-ink: #c4a6f7; --accent-wash: #2a1c48;
   --marca-data: #a77bf3; --marca-care: #efeaf7;
   --shadow: none; --code-bg: #150e26;
+  --brilho-violeta: color-mix(in srgb, var(--accent) 34%, transparent); --brilho-laranja: color-mix(in srgb, var(--s2) 16%, transparent);
   --code-kw: #c4a6f7; --code-str: #0ca30c; --code-num: #ec835a; --code-com: #9286ab; --code-fn: #e0517f;
-  --s1: #9a63ef; --s2: #d95926; --s3: #129aa6; --s4: #e0517f;
-  --s5: #b0852a; --s6: #5b7cf0; --s7: #b0568f; --s8: #7f9e2e;
+  --s1: #9a63ef; --s2: #d95926; --s3: #c4a6f7;
   --div-neg: #9a63ef; --div-mid: #3a3542; --div-pos: #d95926;
   --seq-0: #2a1c48; --seq-1: #d9c8fb;
   --ok-wash: #142614; --warn-wash: #2b2410; --crit-wash: #2d1616;
 }
+:root { interpolate-size: allow-keywords; }
 * { box-sizing: border-box; }
 .pular { position: absolute; left: 12px; top: -60px; z-index: 20; padding: 10px 16px; border-radius: 10px; background: var(--accent);
   color: #fff; font-weight: 600; text-decoration: none; }
@@ -93,7 +96,7 @@ button, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 button, .chip, .tab, .turno-pill, select { transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease),
   color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease); }
-button:not(:disabled):active, .chip:active { transform: scale(.98); }
+button:not(:disabled):not(.tab):active, .chip:active { transform: scale(.96); }
 .ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 .marca-ico { width: 28px; height: 28px; display: block; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2;

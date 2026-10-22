@@ -62,8 +62,8 @@ This repository is a **demonstrative, offline adaptation** of the work the SQLad
   | Lilac | `#BFAED8` |
   | Cream | `#FFFEF3` |
 
-  The chart palette and the status colors (green, yellow, red) are approved.
-- **Logo:** the wordmark "DataCare_" ("Data" and "_" violet, "Care" deep purple) and the brain-circuit line icon are approved. An earlier "D_" monogram was rejected.
+  The chart palette (violet, orange and lilac only) and the status colors (green, yellow, red) are approved.
+- **Logo:** only the wordmark "DataCare_" ("Data" and "_" violet, "Care" deep purple). The user removed the brain-circuit icon from the logo, so it is used only as the favicon. An earlier "D_" monogram was rejected.
 - **Assets:** the cover art is `static/marca/capa-topo.webp`, cropped above the members' names.
 - **Team:** shown only as the group name SQLadies. No member names or student IDs (RMs) in public material.
 - **Framing:** commits, README and footer must say this is a "demonstrative adaptation of the project delivered to Oracle".

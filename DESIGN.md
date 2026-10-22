@@ -178,7 +178,7 @@ A restrained violet-and-purple brand on warm cream, plus a fixed status triad an
 
 ### Status and data
 - **Status** (ok, warn, crit, plus their washes): fixed in both themes. Only the washes have dark variants (`#142614`, `#2b2410`, `#2d1616`).
-- **Chart series** (s1–s8): validated for color vision deficiency in both themes with the dataviz skill. Dark-theme values live in base.css. The diverging scale runs violet to orange through a neutral mid (`--div-*`). The sequential scale runs from a lilac wash to deep purple (`--seq-*`). Plotly traces resolve these from CSS at draw time.
+- **Chart series** (s1–s3): brand colors only, violet, orange and lilac, with at most 3 series per chart. Validated with the dataviz skill; the 3rd series also has its own shape (dashed line, diamond marker). Dark-theme values live in base.css. The diverging scale runs violet to orange through a neutral mid (`--div-*`). The sequential scale runs from a lilac wash to deep purple (`--seq-*`). Plotly traces resolve these from CSS at draw time.
 
 ### Named Rules
 **The Violet Means Act Rule.** Violet fills belong to things the user can press, focus or select, plus the user's own question bubble. Content, headings and decoration stay in the ink ramp.
@@ -201,7 +201,7 @@ A restrained violet-and-purple brand on warm cream, plus a fixed status triad an
 - **Headline** (headline token): landing section heads and the closing band (up to 48px).
 - **Title** (title token): dashboard titles (22px) and the app home heading (clamp 22–30px). KPI values also use 22px/650 with tabular figures.
 - **Body** (body token): 15px in the app, 16px on the landing, with secondary paragraphs at 17–18px. Measure is held at 46–66ch on the landing and 78ch for insights.
-- **Label** (label token): chips, captions, and table text (12–13.5px). Uses the `--fs-xs/sm/md` steps (12/13/14px).
+- **Label** (label token): chips, captions, and table text. Uses the `--fs-xs/sm/md` steps (12/13/14px); body text in the app uses `--fs-base` (15px). App sizes always come from the `--fs-*` scale.
 - **Figure** (figure token): the landing's live figures (40px; 30px under 720px) and the team results (36–48px). Tabular numbers throughout.
 - **Code** (code token): Oracle SQL blocks and the browser-frame address bar.
 
@@ -214,7 +214,7 @@ A restrained violet-and-purple brand on warm cream, plus a fixed status triad an
 
 The landing sits in a 1200px container (`min(1200px, 100% - 48px)`, with 32px of total inset under 720px). The hero splits into a text column of up to 640px and a screenshot column, 56px apart. The screenshot window bleeds off the right edge of the viewport. Sections are separated by 112px (80px on mobile). Section heads use a 5/7 grid, with the heading left and a paragraph aligned to its bottom. Content splits are 7/5. Everything collapses to one column at 1080px, and the nav becomes a horizontally scrolling row.
 
-The app has a sticky tab bar (`--tabbar-h` 47px, 51px on mobile) and panels padded 24px (16px on mobile). Dashboards are capped at 1240px. The app home centers an 820px column. Charts sit in a two-column grid with 16px gaps, and wide charts span both columns. Charts, the "why it matters" panel and alerts go to one column at 960px. KPIs go to two columns at 640px. Touch targets grow to 44px at 640px (720px on the landing). Neither surface may scroll horizontally at 390px.
+The app has a sticky tab bar (`--tabbar-h` 47px, 51px on mobile) and panels padded 24px (16px on mobile). Dashboards are capped at `--wide` (1600px). The app home centers the 820px question block. Charts sit in flex rows with 16px gaps that never leave a hole. Each card grows to fill its row, with 2 per row, or 3 at 1500px and up, balanced by count. Wide charts take a full row. A map is paired with the first chart at the same height and cropped to its municipalities. Charts, the "why it matters" panel and alerts go to one column at 960px. KPIs go to two columns at 640px. Touch targets grow to 44px at 640px (720px on the landing). Neither surface may scroll horizontally at 390px.
 
 ## Elevation & Depth
 
@@ -230,7 +230,7 @@ The system is mostly flat, built with tonal layers and hairline borders. Shadows
 
 ## Shapes
 
-Corners come from a small radius family: `--r-sm` 8px for buttons, inputs and inner visuals; `--r-md` 12px for panels, windows, tables and the SQL box; `--r-lg` 16px for the closing band. Chips, tags, status badges and turn pills are full pills. The composer is softer (22px, 18px on mobile). The question bubble has one tight corner (18 18 4 18) pointing to its sender. Borders are always 1px hairlines. The turn separator is the one dashed line. The problem chain links its cells with small rotated-square chevrons drawn from the same hairline.
+Corners come from a small radius family: `--r-sm` 8px for buttons, inputs and inner visuals; `--r-md` 12px for panels, windows, tables and the SQL box; `--r-lg` 16px for the closing band. Chips, tags, status badges and turn pills are full pills. The composer is softer (24px = the send button's 14px + 10px padding, so the corners are concentric; 18px on mobile). The question bubble has one tight corner (18 18 4 18) pointing to its sender. Borders are always 1px hairlines. The turn separator is the one dashed line. The problem chain links its cells with small rotated-square chevrons drawn from the same hairline.
 
 ## Components
 
@@ -260,7 +260,7 @@ Compact and quiet. Violet appears only where an action happens.
 
 ### Navigation
 - **Landing top bar:** sticky, 64px, page color at 82% with `blur(10px)` and a hairline bottom border. Links are 14px `text-2` and gain a surface-2 fill on hover.
-- **App tab bar:** browser-style tabs with a 10px top radius. The selected tab is filled with surface, set in 600 weight, and outlined by hairlines. The "Início" tab cannot be closed. A status dot or spinner sits on each tab.
+- **App tab bar:** folder tabs, following the user's reference image. A 56px rail (`--tabbar-h`), 5% darker than the page, holds the logo, a hairline divider, the tabs, a chevron menu and the theme button. Inactive tabs are transparent, 15px, 500 weight, `--text-2`, with 16px top corners and a light page-tint pill on hover. The active tab is page-colored, 650 weight, with no outline, and merges into the content below; concave 16px radial-gradient flares at its base join it to the panel. A short, thick (3px, rounded) underline in `currentColor` sits under its label. Status icons, the faint close X and the overflow edge fades stay. The chevron opens "Abas abertas": a floating card (18px radius, soft wide shadow) with one row per tab, divided by hairlines. Each row has a 40px round icon holding the status icon, the question in bold, "Situação: …" in muted text and the question count on the right. The "Perguntas 1 · 2" strip below is page-colored, so the active tab flows into it.
 - **Turn nav:** sticky under the tab bar, translucent page color with blur, and numbered pills.
 
 ### Status Badge (signature)
@@ -273,7 +273,7 @@ A hairline 12px frame with a 34px surface-2 bar holding three axis-colored dots 
 Loading draws the shape of the dashboard: a bubble, a title, KPIs and a chart. A 1.2s shimmer runs from surface-2 to surface. The skeleton replaces the spinner and stops under reduced motion.
 
 ### Logo
-The brain-circuit line icon (`static/marca/favicon.svg`, inlined in both pages; stroke 2.2, colored `--marca-data`) sits beside the wordmark "DataCare_": "Data" and "_" in violet, "Care" in deep purple (cream-white in dark). Under 640px the app shows the icon only.
+The logo is the wordmark alone: "DataCare_" with "Data" and "_" in violet and "Care" in deep purple (light in dark theme), 18px in the app and 20px on the landing. The user asked to drop the brain-circuit icon from the logo. It survives only as the favicon (`static/marca/favicon.svg`). A soft brand glow sits behind both pages as a fixed `body::before` layer, so it stays visible while scrolling: on the whole landing and in every app tab (Início and dashboards). It is four radial gradients: violet at the top center, top left and bottom right, and a touch of orange at the top right. It comes from `--brilho-violeta` and `--brilho-laranja`, which are stronger in dark theme. In the app it starts at the page color right under the tab bar, so the active folder tab stays seamless. On the landing, the `.numeros` and `.banda` stripes are 62% surface so the glow shows through. **Meshes:** plexus-style `<canvas class="malha">` layers in the landing's hero and in the closing band, after the user's reference image. They are brand violet and lilac dots joined by fading lines, with some glowing dots, drifting slowly. They are drawn by `landing.js` (`malha()`), masked away under the text, pause offscreen or when the tab is hidden, stay static under reduced motion, and redraw on theme change.
 
 ## Do's and Don'ts
 

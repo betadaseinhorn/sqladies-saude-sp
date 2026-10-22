@@ -63,7 +63,7 @@
   const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   function theme() {
     return {
-      series: [1, 2, 3, 4, 5, 6, 7, 8].map((i) => css(`--s${i}`)),
+      series: [1, 2, 3].map((i) => css(`--s${i}`)),
       text: css("--text"), text2: css("--text-2"), muted: css("--muted"),
       grid: css("--grid"), axis: css("--axis"), surface: css("--surface"), surface2: css("--surface-2"),
       neg: css("--div-neg"), mid: css("--div-mid"), pos: css("--div-pos"),
@@ -78,8 +78,12 @@
 
   function styleTrace(tr, T) {
     const t = structuredClone(tr);
-    const color = t.colorRole === "muted" ? T.muted : T.series[(t.colorSlot ?? 0) % 8];
+    const slot = Math.min(t.colorSlot ?? 0, T.series.length - 1);
+    const color = t.colorRole === "muted" ? T.muted : T.series[slot];
     const isMuted = t.colorRole === "muted";
+    // a cor nunca é o único sinal: em linhas e pontos, cada série também tem forma própria (marcador e traço);
+    // nas barras agrupadas, a ordem fixa e a legenda identificam a série
+    const SIMBOLO = ["circle", "square", "diamond"], TRACO = ["solid", "solid", "dash"];
     if (t.type === "bar") {
       t.marker = Object.assign({}, t.marker);
       if (t.colorByValue === "diverging") {
@@ -87,7 +91,7 @@
         t.marker.color = vals.map((v) => (v >= 0 ? T.pos : T.neg));
       } else t.marker.color = color;
       t.marker.line = { width: 0 };
-      t.textfont = { color: T.text2, size: 11.5 };
+      t.textfont = { color: T.text2, size: 12 };
       if (t.error_x) t.error_x = Object.assign({ color: T.text2, thickness: 1.5, width: 4 }, t.error_x);
     } else if (t.type === "choropleth") {
       // mapa dos municípios: a malha vem do arquivo local; bordas na cor da superfície
@@ -95,13 +99,14 @@
       if (t.scale === "base") t.colorscale = [[0, T.surface2], [1, T.surface2]];
       else if (t.scale === "categorical") {
         const n = t.categorias.length;
-        t.colorscale = t.categorias.flatMap((_, i) => [[i / n, T.series[i % 8]], [(i + 1) / n, T.series[i % 8]]]);
+        const cor = (i) => T.series[Math.min(i, T.series.length - 1)];
+        t.colorscale = t.categorias.flatMap((_, i) => [[i / n, cor(i)], [(i + 1) / n, cor(i)]]);
         t.colorbar = Object.assign({}, t.colorbar, { tickvals: t.categorias.map((_, i) => i), ticktext: t.categorias });
       } else t.colorscale = [[0, T.seq0], [1, T.seq1]];
       t.marker = { line: { color: T.surface, width: 0.4 } };
       if (t.showscale !== false) {
-        t.colorbar = Object.assign({ outlinewidth: 0, tickfont: { color: T.text2, size: 11 } }, t.colorbar);
-        if (t.colorbar.title) t.colorbar.title.font = { color: T.text2, size: 11.5 };
+        t.colorbar = Object.assign({ outlinewidth: 0, tickfont: { color: T.text2, size: 12 } }, t.colorbar);
+        if (t.colorbar.title) t.colorbar.title.font = { color: T.text2, size: 12 };
       }
       delete t.categorias;
     } else if (t.type === "scattergeo") {
@@ -109,17 +114,17 @@
     } else if (t.type === "scatter") {
       const lines = (t.mode || "").includes("lines");
       const markers = (t.mode || "").includes("markers");
-      if (lines) t.line = Object.assign({ width: 2 }, t.line, { color });
+      if (lines) t.line = Object.assign({ width: 2, dash: isMuted ? "solid" : TRACO[slot] }, t.line, { color });
       if (markers) {
         const m = t.marker || {};
-        t.marker = Object.assign({ size: lines ? 7 : 8 }, m, {
+        t.marker = Object.assign({ size: lines ? 7 : 8, symbol: isMuted ? "circle" : SIMBOLO[slot] }, m, {
           color: isMuted ? alpha(T.muted, 0.45) : color,
           line: { color: T.surface, width: lines ? 2 : 1 },
         });
         if (!lines && !isMuted && m.opacity == null) t.marker.opacity = 0.85;
       }
       if (t.fill) t.fillcolor = alpha(color, 0.1);
-      if ((t.mode || "").includes("text")) t.textfont = { color: T.text2, size: 11 };
+      if ((t.mode || "").includes("text")) t.textfont = { color: T.text2, size: 12 };
     } else if (t.type === "heatmap") {
       t.colorscale = t.scale === "sequential"
         ? [[0, T.seq0], [1, T.seq1]]
@@ -129,7 +134,7 @@
         const m = Math.max(...flat.map(Math.abs));
         t.zmin = -m; t.zmax = m;
       }
-      t.colorbar = Object.assign({ outlinewidth: 0, tickfont: { color: T.text2, size: 11 } }, t.colorbar);
+      t.colorbar = Object.assign({ outlinewidth: 0, tickfont: { color: T.text2, size: 12 } }, t.colorbar);
       t.hoverongaps = false;
     }
     delete t.colorSlot; delete t.colorRole; delete t.colorByValue; delete t.scale;
@@ -138,7 +143,7 @@
 
   function styleLayout(lay, traces, T, height) {
     const axis = (a = {}) => Object.assign({
-      gridcolor: T.grid, linecolor: T.axis, zerolinecolor: T.axis, tickfont: { color: T.muted, size: 11.5 },
+      gridcolor: T.grid, linecolor: T.axis, zerolinecolor: T.axis, tickfont: { color: T.muted, size: 12 },
       automargin: true, exponentformat: "none", separatethousands: true,
     }, a, { title: Object.assign({ font: { color: T.text2, size: 12 } }, a.title || {}) });
     const multi = traces.filter((t) => t.name && t.showlegend !== false).length >= 2;
@@ -163,10 +168,18 @@
       const longest = Math.max(...hb.flatMap((t) => t.text || []).map((s) => String(s).length));
       const pad = Math.min(0.6, 0.06 + longest * 0.018);
       L.xaxis.range = [lo < 0 ? lo * (1 + pad) : 0, hi > 0 ? hi * (1 + pad) : 0];
+      // cada barra já mostra o valor: o eixo de baixo só repetiria os números (e por extenso, como 2.000.000.000)
+      if (hb.every((t) => t.text && t.text.length)) Object.assign(L.xaxis, { showticklabels: false, showgrid: false, title: { text: "" } });
     }
     for (const ax of [L.xaxis, L.yaxis]) if (ax.type === "log" && ax.dtick == null) ax.dtick = 1;
     if (lay.geo) {
       L.geo = Object.assign({ bgcolor: "rgba(0,0,0,0)", projection: { type: "mercator" } }, lay.geo);
+      // recorte exato dos municípios desenhados: o mapa ocupa o cartão (fitbounds deixa uma moldura grande e vazia)
+      const caixa = caixaGeo(traces);
+      if (caixa) {
+        delete L.geo.fitbounds;
+        L.geo.lonaxis = { range: caixa.lon }; L.geo.lataxis = { range: caixa.lat };
+      }
       L.showlegend = false;
     }
     if (lay.xaxis && lay.xaxis.visible === false) L.xaxis.visible = false;
@@ -177,6 +190,30 @@
       return c;
     });
     return L;
+  }
+
+  // limites (lon/lat) dos municípios e pontos de um mapa, com uma folga de 2%
+  let caixasMun = null;
+  function caixaGeo(traces) {
+    if (!GEO) return null;
+    if (!caixasMun) {
+      caixasMun = new Map();
+      for (const f of GEO.features) {
+        const c = [Infinity, -Infinity, Infinity, -Infinity];
+        const andar = (p) => { if (typeof p[0] === "number") { c[0] = Math.min(c[0], p[0]); c[1] = Math.max(c[1], p[0]); c[2] = Math.min(c[2], p[1]); c[3] = Math.max(c[3], p[1]); } else p.forEach(andar); };
+        andar(f.geometry.coordinates);
+        caixasMun.set(String(f.id), c);
+      }
+    }
+    const c = [Infinity, -Infinity, Infinity, -Infinity];
+    const somar = (x0, x1, y0, y1) => { c[0] = Math.min(c[0], x0); c[1] = Math.max(c[1], x1); c[2] = Math.min(c[2], y0); c[3] = Math.max(c[3], y1); };
+    for (const t of traces) {
+      if (t.type === "choropleth") for (const l of t.locations || []) { const m = caixasMun.get(String(l)); if (m) somar(...m); }
+      if (t.type === "scattergeo") (t.lon || []).forEach((x, i) => somar(x, x, t.lat[i], t.lat[i]));
+    }
+    if (!isFinite(c[0])) return null;
+    const px = (c[1] - c[0]) * 0.02 || 0.1, py = (c[3] - c[2]) * 0.02 || 0.1;
+    return { lon: [c[0] - px, c[1] + px], lat: [c[2] - py, c[3] + py] };
   }
 
   function drawChart(div, spec) {
@@ -193,10 +230,37 @@
       const nomes = [...new Set(barrasH.flatMap((t) => t.y))];
       layout.yaxis = Object.assign({}, layout.yaxis, { tickmode: "array", tickvals: nomes,
         ticktext: nomes.map((s) => (String(s).length > 18 ? String(s).slice(0, 17) + "…" : s)),
-        tickfont: Object.assign({}, layout.yaxis.tickfont, { size: 10.5 }) });
+        tickfont: Object.assign({}, layout.yaxis.tickfont, { size: 12 }) });
     }
     // topojsonURL: mapa-base do Plotly servido localmente (static/vendor/topojson), para funcionar offline
     Plotly.react(div, traces, layout, { displayModeBar: false, responsive: true, topojsonURL: "/static/vendor/topojson/" });
+  }
+
+  // achados: os números da frase (+5%, 13 pontos, R$ 2,3 bi, 2,8×) em negrito, para leitura rápida; anos e datas (mai/25) ficam normais
+  const NUMERO = /((?<![\/\w.,])[+\-−]?(?:R\$\s?)?\d(?:[\d.,]*\d)?(?:\s?(?:%|×|x\b|pontos percentuais|p\.p\.|mil\b|mi\b|bi\b|dias\b))?)/g;
+  function destacarNumeros(texto) {
+    const partes = texto.split(NUMERO);
+    return partes.map((parte, i) => {
+      if (i % 2 === 0 || !parte) return parte;
+      const antes = partes[i - 1] || "";
+      // anos, denominadores ("por 1.000", "por 10 mil") e nomes ("Grupo 1") não são o dado em si
+      if (/^(19|20)\d\d$/.test(parte) || /(por|Grupo)\s$/.test(antes)) return parte;
+      return el("strong", { text: parte });
+    });
+  }
+
+  const eMapa = (c) => c.traces.some((t) => t.geojson === "sp");
+  // com mapa, os gráficos vão em pares: o mapa fica ao lado do 1º gráfico, com a mesma altura dele,
+  // e o gráfico que sobrar ocupa a linha toda (em vez de três colunas estreitas com o mapa pequeno)
+  function ordenarGraficos(lista) {
+    const normais = lista.filter((c) => !c.wide);
+    const mapa = normais.find(eMapa);
+    if (!mapa || normais.length < 2) return lista;
+    const par = normais.find((c) => c !== mapa);
+    const h = Math.max(mapa.height || 340, par.height || 340);
+    const resto = lista.filter((c) => c !== mapa).map((c) => (c === par ? { ...c, height: h } : c));
+    const i = resto.findIndex((c) => c.title === par.title);
+    return [...resto.slice(0, i + 1), { ...mapa, height: h }, ...resto.slice(i + 1)];
   }
 
   const graficos = (a) => a.turnos.flatMap((t) => t.charts);
@@ -304,7 +368,10 @@
     const csv = el("button", { type: "button", class: "csv-btn", title: "Baixar a tabela em CSV (abre no Excel)",
       onclick: (e) => { e.preventDefault(); e.stopPropagation(); baixarCsv(spec); } },
     svgIcon('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'), el("span", { text: "Baixar CSV" }));
-    const det = el("details", { class: "tbl" }, el("summary", {},
+    const chev = svgIcon('<path d="M9 6l6 6-6 6"/>');
+    chev.classList.add("chev");
+    chev.setAttribute("aria-hidden", "true");
+    const det = el("details", { class: "tbl" }, el("summary", {}, chev,
       el("span", { class: "tbl-titulo", text: `Ver tabela: ${spec.title} (${spec.rows.length})` }), csv));
     const wrap = el("div", { class: "tbl-wrap" });
     const tbody = el("tbody");
@@ -321,7 +388,10 @@
     }
     const tr = el("tr");
     for (const c of spec.columns) {
-      const th = el("th", { class: isNum(c) ? "num" : "", scope: "col", tabindex: "0", text: c.label });
+      const seta = svgIcon('<path d="M12 19V5M6 11l6-6 6 6"/>');
+    seta.classList.add("seta-ord");
+    seta.setAttribute("aria-hidden", "true");
+      const th = el("th", { class: isNum(c) ? "num" : "", scope: "col", tabindex: "0" }, el("span", { text: c.label }), seta);
       const sort = () => {
         dir = sortKey === c.key ? -dir : (isNum(c) || c.fmt === "status" ? -1 : 1);
         sortKey = c.key;
@@ -372,7 +442,7 @@
   }
 
   async function copiar(texto, btn) {
-    const label = btn.querySelector("span");
+    const label = btn.querySelector("span:last-child");
     try {
       await navigator.clipboard.writeText(texto);
     } catch (e) {
@@ -384,25 +454,37 @@
       ta.remove();
     }
     label.textContent = "Copiado!";
-    setTimeout(() => { label.textContent = "Copiar"; }, 1600);
+    btn.classList.add("copiado");
+    clearTimeout(btn._copiado);
+    btn._copiado = setTimeout(() => { label.textContent = "Copiar"; btn.classList.remove("copiado"); }, 1600);
   }
 
   function buildSql(blocos) {
     const box = el("div", { class: "sql-box" });
     const tabs = el("div", { class: "sql-tabs", role: "tablist" });
-    const area = el("div");
+    const areaId = `sql-${Math.random().toString(36).slice(2, 8)}`;
+    const area = el("div", { id: areaId, role: "tabpanel" });
     let atual = 0;
+    const icoCopiar = svgIcon('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>');
+    const icoOk = svgIcon('<path d="M5 12.5l4.5 4.5L19 7.5"/>');
+    icoCopiar.classList.add("ico-copiar"); icoOk.classList.add("ico-ok");
     const btn = el("button", { type: "button", class: "copy-btn", onclick: () => copiar(blocos[atual].sql, btn) },
-      svgIcon('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>'),
+      el("span", { class: "ico-troca", "aria-hidden": "true" }, icoCopiar, icoOk),
       el("span", { text: "Copiar" }));
     function mostrar(i) {
       atual = i;
-      tabs.querySelectorAll(".sql-tab").forEach((t, j) => t.setAttribute("aria-selected", String(i === j)));
+      tabs.querySelectorAll(".sql-tab").forEach((t, j) => { t.setAttribute("aria-selected", String(i === j)); t.tabIndex = i === j ? 0 : -1; });
       area.replaceChildren(highlight(blocos[i].sql));
     }
     blocos.forEach((b, i) => tabs.append(el("button", {
-      type: "button", class: "sql-tab", role: "tab", text: b.titulo, onclick: () => mostrar(i),
+      type: "button", class: "sql-tab", role: "tab", "aria-controls": areaId, text: b.titulo, onclick: () => mostrar(i),
     })));
+    tabs.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const i = (atual + (e.key === "ArrowRight" ? 1 : -1) + blocos.length) % blocos.length;
+      mostrar(i);
+      tabs.children[i].focus();
+    });
     box.append(el("div", { class: "sql-head" }, tabs, btn), area,
       el("div", { class: "sql-note", text: "Dialeto Oracle. Os filtros da sua pergunta já estão aplicados. "
         + "A demonstração roda em SQLite com o mesmo modelo relacional (DDL em sql/oracle_schema.sql)." }));
@@ -475,6 +557,12 @@
   }
 
   // refaz o dashboard de um turno com os filtros escolhidos, no mesmo lugar
+  // classe de animação temporária: a entrada roda uma vez e não se repete quando a aba volta a aparecer
+  function marcarEntrada(elm, classe, ms) {
+    elm.classList.add(classe);
+    setTimeout(() => elm.classList.remove(classe), ms);
+  }
+
   async function refazerTurno(a, t, params, fs) {
     const status = fs.querySelector(".filtro-status");
     fs.disabled = true;
@@ -488,6 +576,7 @@
       t.params = res.params || {};
       t.nivel = res.dashboard.status_geral;
       const novo = montarDash(t, res, (p, f) => refazerTurno(a, t, p, f));
+      marcarEntrada(novo, "trocando", 400);
       t.dash.replaceWith(novo);
       t.dash = novo;
       atualizarStatus(a);
@@ -535,7 +624,8 @@
     const analise = el("div", { class: "analise" });
     if (d.insights && d.insights.length) {
       analise.append(el("div", { class: "analise-col" }, el("h3", { class: "section-title", text: "O que os dados mostram" }),
-        el("div", { class: "insights" }, el("ul", {}, d.insights.map((t) => el("li", { text: t }))))));
+        el("div", { class: "insights" }, el("ul", {}, d.insights.map((t, i) =>
+          el("li", {}, el("span", { class: "ins-n", "aria-hidden": "true", text: String(i + 1).padStart(2, "0") }), ...destacarNumeros(t)))))));
     }
     if (d.relevancia) {
       const r = d.relevancia;
@@ -553,8 +643,10 @@
           el("ol", {}, r.acoes.map((t) => el("li", { text: t })))))));
     }
     if (analise.childNodes.length) root.append(analise);
-    const charts = el("div", { class: "charts" });
-    for (const c of d.charts || []) {
+    const lista = ordenarGraficos(d.charts || []);
+    const charts = el("div", { class: "charts", "data-n": String(lista.filter((c) => !c.wide).length),
+      "data-mapa": lista.some(eMapa) ? "" : null });
+    for (const c of lista) {
       const plot = el("div", { class: "plot", role: "img",
         "aria-label": c.title + (d.insights && d.insights.length ? `. ${d.insights[0]}` : "") });
       charts.append(el("div", { class: "card" + (c.wide ? " wide" : "") },
@@ -625,6 +717,7 @@
         el("span", { class: "balao-quem", text: `Você · pergunta ${n}` }), el("p", { text: t.text }))),
       t.dash);
     a.turnos.push(t);
+    marcarEntrada(t.el, "entrando", 900);
     a.lista.append(t.el);
     a.observer.observe(t.el);
     if (a.caixa) a.caixa.remove();
@@ -699,6 +792,7 @@
       localStorage.setItem(STORE, JSON.stringify({ abas: lista, ativa: ativa === "inicio" ? -1 : [...abas.keys()].indexOf(ativa) }));
     } catch (e) { /* ok */ }
     atualizarContinuar();
+    $("#abas-menu").hidden = abas.size === 0;
   }
 
   // Início: atalhos para as abas abertas ("Continuar de onde parou")
@@ -738,6 +832,7 @@
     for (const p of panelsEl.children) p.hidden = p.id !== `panel-${id}`;
     const tab = tabsEl.querySelector(`[data-tab="${id}"]`);
     if (tab) rolarParaVer(tabsEl, tab);
+    bordasAbas();
     window.scrollTo(0, 0);
     if (id === "inicio") input.focus();
     else requestAnimationFrame(() => desenharAba(abas.get(id)));
@@ -754,24 +849,36 @@
     a.tab.remove();
     a.panel.remove();
     abas.delete(id);
+    bordasAbas();
     if (ativa === id) ativar(ids[pos + 1] || ids[pos - 1] || "inicio");
     else salvar();
   }
 
   function setStatus(a, estado) {
+    a.estado = estado;
     const slot = a.tab.querySelector(".tab-status");
-    slot.replaceChildren(estado === "carregando" ? el("span", { class: "spinner", "aria-hidden": "true" })
-      : el("span", { class: `dot ${estado ? "n-" + estado : ""}`, title: NIVEL[estado] ? `Situação: ${NIVEL[estado].rotulo}` : "" }));
+    const n = NIVEL[estado];
+    if (estado === "carregando") slot.replaceChildren(el("span", { class: "spinner", "aria-hidden": "true" }));
+    else if (n) {
+      // mesmo ícone dos alertas do dashboard: a forma (✓ ! ✕) diz a situação, não só a cor
+      const sico = el("span", { class: `tab-sico st-${estado}`, "aria-hidden": "true" });
+      sico.append(svgIcon(ICONE_NIVEL[estado]));
+      slot.replaceChildren(sico);
+    } else slot.replaceChildren(el("span", { class: "tab-sico", "aria-hidden": "true" }));
+    const sit = estado === "carregando" ? "carregando" : n ? `situação: ${n.rotulo}` : "";
+    a.tab.setAttribute("aria-label", sit ? `${a.text} (${sit})` : a.text);
+    a.tab.title = `${a.text}${n ? ` · Situação: ${n.rotulo}` : ""}\nDelete fecha a aba`;
   }
 
   // pendentes: turnos a montar (a 1ª pergunta e, ao reabrir, as feitas dentro da aba)
   function novaAba(text, qid, pendentes = [{ text, qid }]) {
     const id = `aba-${++seq}`;
     const panel = el("section", { class: "panel", id: `panel-${id}`, role: "tabpanel", "aria-labelledby": `tab-${id}`, hidden: "" });
-    const close = el("span", { class: "tab-close", role: "button", "aria-label": `Fechar aba: ${text}`, title: "Fechar aba" },
+    // o X atende o mouse; no teclado a aba inteira é um controle só e Delete a fecha (aria-keyshortcuts)
+    const close = el("span", { class: "tab-close", "aria-hidden": "true", title: "Fechar aba" },
       svgIcon('<path d="M6 6l12 12M18 6L6 18"/>'));
     const tab = el("div", { class: "tab", id: `tab-${id}`, role: "tab", "aria-selected": "false", tabindex: "-1",
-      "aria-controls": `panel-${id}`, "data-tab": id, title: text },
+      "aria-controls": `panel-${id}`, "aria-keyshortcuts": "Delete", "data-tab": id, title: `${text}\nDelete fecha a aba` },
       el("span", { class: "tab-status" }), el("span", { class: "tab-title", text }), close);
     close.addEventListener("click", (e) => { e.stopPropagation(); fechar(id); });
     tab.addEventListener("click", () => ativar(id));
@@ -795,7 +902,10 @@
     const pend = a.pendentes;
     try {
       const res = preRes || await perguntar(pend[0].text, pend[0].qid, pend[0].params);
-      if (res.erro || !res.matched) throw new Error(res.erro || "Pergunta não reconhecida.");
+      if (res.erro || !res.matched) {
+        throw Object.assign(new Error(res.erro || "Não encontrei uma análise para essa pergunta."),
+          { sugestoes: res.sugestoes || [], semMatch: !res.erro });
+      }
       a.qid = res.question_id;
       montarAba(a);
       adicionarTurno(a, { text: pend[0].text }, res, false);
@@ -810,8 +920,26 @@
       salvar();
     } catch (e) {
       setStatus(a, null);
-      a.panel.replaceChildren(el("div", { class: "erro-box" }, el("p", { class: "erro", text: e.message })));
+      a.panel.replaceChildren(erroComSaida(a, e));
     }
+  }
+
+  // erro da aba: o que aconteceu, o que fazer e um caminho para seguir
+  function erroComSaida(a, e) {
+    const sug = e.sugestoes || [];
+    const abrir = (q) => { fechar(a.id); enviar(q.texto, q.id); };
+    const dica = e.semMatch
+      ? (sug.length ? "Escolha uma das perguntas parecidas abaixo ou volte ao Início para escrever de outro jeito."
+        : "Volte ao Início e escreva de outro jeito, citando um município, uma DRS, um ano ou uma causa.")
+      : "Confira se o servidor está rodando (uvicorn app.main:app) e tente de novo.";
+    return el("div", { class: "erro-box", role: "alert" },
+      el("h2", { text: e.message }),
+      el("p", { text: dica }),
+      sug.length ? el("div", { class: "chips" }, sug.slice(0, 3).map((q) =>
+        el("button", { type: "button", class: "chip", text: q.texto, onclick: () => abrir(q) }))) : null,
+      el("div", { class: "erro-acoes" },
+        e.semMatch ? null : el("button", { type: "button", class: "btn-sec", text: "Tentar de novo", onclick: () => carregar(a) }),
+        el("button", { type: "button", class: "btn-sec", text: "Voltar ao Início", onclick: () => ativar("inicio") })));
   }
 
   async function perguntar(text, qid, params) {
@@ -900,6 +1028,56 @@
     const m = location.hash.match(/^#pergunta=(.+)$/);
     try { return m ? decodeURIComponent(m[1]).trim().slice(0, 300) : ""; } catch (e) { return ""; }
   }
+
+  // menu "Todas as abas": cartão com cada aba aberta (situação, pergunta e quantas perguntas tem)
+  const menuBtn = $("#abas-menu-btn"), menuCartao = $("#abas-menu-cartao");
+  const plural = new Intl.PluralRules("pt-BR");
+  function abrirMenuAbas() {
+    const itens = [...abas.values()].map((a) => {
+      const n = NIVEL[a.estado];
+      const sico = el("span", { class: `tab-sico ${n ? "st-" + a.estado : ""}`, "aria-hidden": "true" });
+      if (n) sico.append(svgIcon(ICONE_NIVEL[a.estado]));
+      const qtd = (a.turnos.length || (a.pendentes || []).length || 1);
+      const sub = a.estado === "carregando" ? "Carregando…" : n ? `Situação: ${n.rotulo}` : "Sem situação";
+      return el("button", { type: "button", class: "abas-menu-item", role: "menuitem", tabindex: "-1",
+        "aria-current": a.id === ativa ? "true" : null, onclick: () => { fecharMenuAbas(false); ativar(a.id); } },
+        el("span", { class: "ami-ico" }, sico),
+        el("span", { class: "ami-txt" }, el("strong", { text: a.text }), el("span", { text: sub })),
+        el("span", { class: "ami-meta", text: `${qtd} ${plural.select(qtd) === "one" ? "pergunta" : "perguntas"}` }));
+    });
+    menuCartao.replaceChildren(el("p", { class: "abas-menu-titulo", text: "Abas abertas" }), ...itens);
+    menuCartao.hidden = false;
+    menuBtn.setAttribute("aria-expanded", "true");
+    (menuCartao.querySelector('[aria-current="true"]') || itens[0]).focus();
+  }
+  function fecharMenuAbas(devolverFoco = true) {
+    if (menuCartao.hidden) return;
+    menuCartao.hidden = true;
+    menuBtn.setAttribute("aria-expanded", "false");
+    if (devolverFoco) menuBtn.focus();
+  }
+  menuBtn.addEventListener("click", () => (menuCartao.hidden ? abrirMenuAbas() : fecharMenuAbas()));
+  menuCartao.addEventListener("keydown", (e) => {
+    const itens = [...menuCartao.querySelectorAll(".abas-menu-item")];
+    const i = itens.indexOf(document.activeElement);
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      itens[(i + (e.key === "ArrowDown" ? 1 : -1) + itens.length) % itens.length].focus();
+    } else if (e.key === "Home" || e.key === "End") {
+      e.preventDefault(); itens[e.key === "Home" ? 0 : itens.length - 1].focus();
+    } else if (e.key === "Escape") { e.preventDefault(); fecharMenuAbas(); }
+    else if (e.key === "Tab") fecharMenuAbas(false);
+  });
+  document.addEventListener("pointerdown", (e) => { if (!$("#abas-menu").contains(e.target)) fecharMenuAbas(false); });
+
+  // degradê nas bordas da lista de abas quando há abas escondidas daquele lado
+  function bordasAbas() {
+    const fim = tabsEl.scrollWidth - tabsEl.clientWidth;
+    tabsEl.classList.toggle("mais-esq", tabsEl.scrollLeft > 1);
+    tabsEl.classList.toggle("mais-dir", fim - tabsEl.scrollLeft > 1);
+  }
+  tabsEl.addEventListener("scroll", bordasAbas, { passive: true });
+  window.addEventListener("resize", bordasAbas);
 
   // navegação por teclado entre abas (setas)
   tabsEl.addEventListener("keydown", (e) => {
