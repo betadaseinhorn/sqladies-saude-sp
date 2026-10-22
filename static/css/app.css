@@ -143,11 +143,13 @@ textarea { flex: 1; border: 0; outline: 0; background: transparent; resize: none
 .feedback .box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px 14px; }
 .feedback p { margin: 0 0 8px; font-size: var(--fs-md); color: var(--text-2); }
 .home-hint { margin: 12px 0 0; font-size: var(--fs-sm); color: var(--muted); }
-.catalogo { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px 24px;
+/* catálogo: as 6 categorias numa linha só em telas largas (sem uma coluna sobrando sozinha embaixo), 3 em telas médias */
+.catalogo { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 28px 20px;
   padding-top: 28px; border-top: 1px solid var(--border); text-align: left; }
 .catalogo .chips { flex-direction: column; align-items: stretch; gap: 6px; }
 .catalogo .chip { text-align: left; border-radius: var(--r-sm); line-height: 1.35; padding: 8px 12px; }
 .cat { min-width: 0; }
+.cat-desc { margin: -4px 0 10px; font-size: var(--fs-sm); color: var(--muted); }
 .cat h2 { margin: 0 0 8px; font-size: var(--fs-sm); color: var(--text-2); font-weight: 650; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { border: 1px solid var(--border); background: var(--surface); border-radius: 999px; padding: 6px 13px; font-size: var(--fs-sm);
@@ -164,6 +166,7 @@ textarea { flex: 1; border: 0; outline: 0; background: transparent; resize: none
 .dash-sub { color: var(--text-2); font-size: var(--fs-md); margin-top: 2px; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .tag { font-size: var(--fs-xs); padding: 2px 9px; border-radius: 999px; background: var(--accent-wash); color: var(--accent-ink); }
+.tag-simples { background: var(--accent); color: #fff; font-weight: 600; }
 .section-title { display: flex; align-items: center; gap: 10px; margin: 48px 0 16px; font-size: var(--fs-lg); line-height: 1.2; font-weight: 650;
   letter-spacing: -0.005em; color: var(--text); }
 
@@ -291,6 +294,8 @@ textarea { flex: 1; border: 0; outline: 0; background: transparent; resize: none
 .charts { --cols: 2; display: flex; flex-wrap: wrap; gap: 16px; margin-top: 48px; }
 .charts > .card { flex: 1 1 calc((100% - (var(--cols) - 1) * 16px) / var(--cols)); }
 .charts > .card.wide { flex-basis: 100%; }
+/* um mapa sozinho (pergunta simples): cartão do tamanho do mapa, centralizado, sem vão dos lados */
+.charts[data-n="1"][data-mapa] > .card { max-width: 1040px; margin-inline: auto; }
 /* análise: as duas seções empilhadas, cada uma usando a largura toda (lado a lado, a mais curta deixava um vão) */
 .analise { display: grid; }
 /* telas largas: 3 por linha, exceto quando 2 ou 4 gráficos dividem melhor em pares */
@@ -314,6 +319,9 @@ details.tbl summary::-webkit-details-marker { display: none; }
 .csv-btn, .print-btn { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: var(--fs-sm); font-weight: 500; padding: 5px 10px;
   border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); color: var(--text-2); cursor: pointer; flex: none; }
 .csv-btn:hover, .print-btn:hover { border-color: var(--accent); color: var(--text); }
+/* pergunta simples de tabela: baixar o CSV é a ação principal */
+.csv-btn.csv-destaque { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; padding: 7px 14px; }
+.csv-btn.csv-destaque:hover { background: color-mix(in srgb, var(--accent) 86%, #000); color: #fff; }
 .csv-btn .ico, .print-btn .ico { width: 15px; height: 15px; }
 .so-impressao { display: none; }
 .tbl-wrap { overflow: auto; max-height: 440px; border-top: 1px solid var(--border); }
@@ -413,6 +421,9 @@ details.tbl[open]::details-content { block-size: auto; opacity: 1; }
 .copiado .ico-troca > .ico-ok { opacity: 1; transform: scale(1); }
 
 /* ------------------------------------------------------------ responsivo --- */
+@media (max-width: 1200px) { .catalogo { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .catalogo { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .catalogo { grid-template-columns: 1fr; } }
 @media (max-width: 960px) {
   .relev { grid-template-columns: 1fr; }
   .charts { --cols: 1; }

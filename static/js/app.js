@@ -593,6 +593,7 @@
     const d = res.dashboard;
     const root = el("div", { class: "dash" });
     const tags = (d.filtros || []).map((f) => el("span", { class: "tag", text: f }));
+    if (d.simples) tags.unshift(el("span", { class: "tag tag-simples", text: "Relatório simples" }));
     root.append(el("div", { class: "dash-head" },
       el("div", {}, el("h2", { text: d.title }), el("div", { class: "dash-sub", text: d.subtitle || "" }),
         tags.length ? el("div", { class: "tags" }, tags) : null),
@@ -654,7 +655,13 @@
       t.charts.push([plot, c]);
     }
     root.append(charts);
-    for (const t of d.tables || []) if (t.rows && t.rows.length) root.append(buildTable(t));
+    for (const t of d.tables || []) {
+      if (!t.rows || !t.rows.length) continue;
+      const tb = buildTable(t);
+      // pergunta simples de tabela: o resultado é a própria tabela, já aberta, com o CSV em destaque
+      if (d.simples === "tabela") { tb.open = true; tb.querySelector(".csv-btn").classList.add("csv-destaque"); }
+      root.append(tb);
+    }
     if (d.nota) root.append(el("p", { class: "nota", text: d.nota }));
     if (d.sql && d.sql.length) {
       root.append(el("h3", { class: "section-title", text: "Query SQL (Oracle)" }));
@@ -1112,6 +1119,7 @@
       const cat = $("#catalogo");
       for (const c of qs.categorias) {
         cat.append(el("div", { class: "cat" }, el("h2", { text: c.nome }),
+          c.descricao ? el("p", { class: "cat-desc", text: c.descricao }) : null,
           el("div", { class: "chips" }, c.perguntas.map(chip))));
       }
     } catch (e) {

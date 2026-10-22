@@ -370,6 +370,43 @@ def custos(p: dict) -> dict:
                               ("medio", "Valor médio", "brl"), ("perm", "Permanência (dias)", "dec1")])]}
 
 
+# -------------------------------------------------------- perguntas simples --
+# Um resultado só (tabela, gráfico ou mapa): sem indicadores, alertas, achados nem "por que importa".
+def simples_tabela(p: dict) -> dict:
+    d = _mun_taxas(p).sort_values("n", ascending=False)
+    _, _, _, desc = filtro(p)
+    return {"simples": "tabela", "title": "Internações por município",
+            "subtitle": f"Município de residência do paciente · {periodo(p)} · {fmt_int(len(d))} municípios",
+            "filtros": desc, "kpis": [], "charts": [], "insights": [],
+            "tables": [table("Internações por município", d,
+                             [("nome", "Município", "text"), ("drs_nome", "DRS", "text"),
+                              ("n", "Internações", "int"), ("pop", "População", "int"),
+                              ("taxa", "Internações por 1.000 hab./ano", "dec1")])]}
+
+
+def simples_grafico(p: dict) -> dict:
+    join, where, args, desc = filtro({k: v for k, v in p.items() if k != "ano"})
+    s = db.df(f"""SELECT mes_inter, SUM(internacoes) n FROM agg_mensal_hosp a {join}
+                  WHERE {where} GROUP BY 1 ORDER BY 1""", args)
+    linha = {"type": "scatter", "mode": "lines+markers", "name": "Internações", "x": [mes_label(m) for m in s["mes_inter"]],
+             "y": _list(s["n"]), "colorSlot": 0, "hovertemplate": "%{x}: %{y:,.0f} internações<extra></extra>"}
+    return {"simples": "grafico", "title": "Internações mês a mês",
+            "subtitle": f"Internações SUS por mês de internação · {periodo({})}",
+            "filtros": desc, "kpis": [], "insights": [],
+            "charts": [chart("Internações por mês", [linha], layout={"yaxis": {"rangemode": "tozero"}},
+                             height=420, wide=True)]}
+
+
+def simples_mapa(p: dict) -> dict:
+    d = _mun_taxas(p)
+    _, _, _, desc = filtro(p)
+    return {"simples": "mapa", "title": "Mapa das internações por município",
+            "subtitle": f"Internações por 1.000 habitantes/ano, pelo município de residência · {periodo(p)}",
+            "filtros": desc, "kpis": [], "insights": [],
+            "charts": [mapa_mun("Internações por 1.000 habitantes/ano", d, "taxa", "%{z:.1f} por 1.000 hab.",
+                                subtitle="Quanto mais escuro, mais internações por habitante", legenda="por 1.000")]}
+
+
 # ------------------------------------------------------------- sazonalidade --
 def _indice(df: pd.DataFrame, chave: str) -> pd.DataFrame:
     d = df.copy()
@@ -1325,6 +1362,7 @@ def fatores(p: dict) -> dict:
 
 
 BUILDERS: dict[str, Callable[[dict], dict]] = {
+    "simples_tabela": simples_tabela, "simples_grafico": simples_grafico, "simples_mapa": simples_mapa,
     "visao_geral": visao_geral, "custos": custos,
     "sazonal_estado": sazonal_estado, "sazonal_drs": sazonal_drs, "sazonal_causas": sazonal_causas,
     "sazonal_cap_regiao": sazonal_cap_regiao,
@@ -1342,8 +1380,10 @@ def _montar(question_id: str, chave: str) -> dict:
     """Dashboard sem a query (que depende do texto da pergunta). Fica em cache: não alterar."""
     out = BUILDERS[question_id](json.loads(chave))
     out.setdefault("alertas", [])
-    out["status_geral"] = A.pior(out["alertas"])
-    out["relevancia"] = R.secao(question_id, out["alertas"])
+    simples = POR_ID[question_id].simples
+    # pergunta simples: relatório de um resultado só, sem situação nem "por que importa"
+    out["status_geral"] = None if simples else A.pior(out["alertas"])
+    out["relevancia"] = None if simples else R.secao(question_id, out["alertas"])
     out["seguintes"] = [{"id": i, "texto": POR_ID[i].texto} for i in SEGUINTES[question_id]]
     out.setdefault("nota", "")
     out.setdefault("tables", [])

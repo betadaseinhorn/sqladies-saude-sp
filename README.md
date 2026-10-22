@@ -40,7 +40,7 @@ uvicorn app.main:app              # landing em http://localhost:8000 · aplicaç
 Depois do pipeline, o app não usa a internet: o Plotly e as fontes (Geist) estão em `static/vendor/`.
 
 Desempenho: como o banco é somente leitura, cada dashboard (pergunta + filtros) fica em cache. Ao subir, o servidor
-pré-monta em segundo plano as 18 perguntas do catálogo. As respostas e os arquivos estáticos saem compactados (gzip).
+pré-monta em segundo plano as 21 perguntas do catálogo. As respostas e os arquivos estáticos saem compactados (gzip).
 Depois de refazer o banco com o `pipeline.py`, reinicie o servidor.
 
 ## Rodar em outro PC
@@ -78,7 +78,7 @@ analysis/   seasonality.py    índice sazonal + STL por estado, DRS, região de 
             clustering.py     K-means + PCA de municípios; Spearman e regressão WLS dos fatores de demanda
             eda.ipynb         exploração que originou o catálogo de perguntas
 app/        main.py           FastAPI (/api/questions, /api/ask, /api/filters)
-            questions.py      catálogo de 18 perguntas em 5 categorias
+            questions.py      catálogo de 21 perguntas em 6 categorias
             matcher.py        casa texto livre → pergunta (fuzzy + palavras-chave) e extrai filtros
             dashboards.py     um construtor de dashboard por pergunta
             alerts.py         regras de alerta (Aceitável / Alerta / Crítico), limites configuráveis
@@ -102,6 +102,10 @@ O contexto do produto para o design está em `PRODUCT.md`. A tipografia é a Gei
 
 ## Interface: aba Início e abas de dashboard
 
+- **Perguntas simples**: a 1ª coluna do catálogo traz 3 perguntas de um resultado só, para começar a demonstração:
+  "Baixe a lista de internações por município" (tabela aberta, com o **Baixar CSV** em destaque), "Gráfico das
+  internações mês a mês" (um gráfico) e "Mapa das internações por município" (um mapa). Têm filtros e a query
+  Oracle, mas não têm alertas nem análise; as sugestões no fim levam às 18 análises completas.
 - **Início**: aba fixa (não pode ser fechada) com a caixa de pergunta no topo, o catálogo de perguntas por categoria e,
   embaixo, "Continuar de onde parou" e "Sobre os dados".
 - **Abas de dashboard**: cada pergunta abre uma aba (no estilo de pasta) com o texto digitado como título. O ícone da
@@ -189,7 +193,7 @@ No fim de cada dashboard há o bloco **Query SQL (Oracle)**, com uma aba por con
 - Os valores dos filtros entram como literais validados (inteiros e códigos do catálogo). Texto livre do usuário nunca
   entra no SQL, só como comentário de uma linha.
 - Partes estatísticas (STL, K-means, regressão) são executadas em Python. A query mostra a extração dos dados.
-- **Validação**: as 62 queries (18 perguntas, com e sem filtros) passam no parser Oracle do `sqlglot`. Também foram
+- **Validação**: as queries das 21 perguntas (com e sem filtros) passam no parser Oracle do `sqlglot`. Também foram
   traduzidas para SQLite e executadas contra o banco da demonstração, devolvendo dados.
 
 ## Catálogo de perguntas

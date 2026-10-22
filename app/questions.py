@@ -17,12 +17,26 @@ class Question:
     categoria: str
     keywords: tuple[str, ...]
     exemplo_params: dict = field(default_factory=dict)
+    simples: str = ""  # "tabela", "grafico" ou "mapa": relatório de um resultado só (sem alertas nem análise)
 
 
-CATEGORIAS = ("Visão geral", "Sazonalidade", "Rankings e comparações", "Capacidade",
+# linha curta mostrada sob o nome da categoria no catálogo do Início
+DESCRICAO_CATEGORIA = {"Perguntas simples": "Um resultado só: tabela, gráfico ou mapa"}
+
+CATEGORIAS = ("Perguntas simples", "Visão geral", "Sazonalidade", "Rankings e comparações", "Capacidade",
               "Padrões e fatores")
 
 CATALOGO: list[Question] = [
+    # perguntas simples: a porta de entrada da demonstração (um resultado só, sem análise)
+    Question("simples_tabela", "Baixe a lista de internações por município",
+             "Perguntas simples", ("lista", "listar", "planilha", "csv", "excel", "baixe", "baixar", "exportar",
+                                   "tabela de internacoes", "por municipio"), simples="tabela"),
+    Question("simples_grafico", "Gráfico das internações mês a mês",
+             "Perguntas simples", ("grafico", "mes a mes", "linha do tempo", "evolucao", "por mes"),
+             simples="grafico"),
+    Question("simples_mapa", "Mapa das internações por município",
+             "Perguntas simples", ("mapa", "mapear", "no mapa", "geografico", "onde"), simples="mapa"),
+
     Question("visao_geral", "Qual o panorama geral das internações SUS no estado?",
              "Visão geral", ("panorama", "geral", "resumo", "visao", "estado", "total",
                              "quantas internacoes", "overview")),
@@ -95,6 +109,9 @@ POR_ID = {q.id: q for q in CATALOGO}
 # Levantados a partir dos builders em app/dashboards.py.
 _BASE = ("ano", "drs", "cap_cid", "carater")
 FILTROS: dict[str, tuple[str, ...]] = {
+    "simples_tabela": _BASE,
+    "simples_grafico": ("drs", "cap_cid", "carater"),
+    "simples_mapa": _BASE,
     "visao_geral": _BASE,
     "custos": ("ano", "drs", "carater"),
     "sazonal_estado": ("drs", "cap_cid", "carater"),
@@ -128,6 +145,10 @@ def filtros_aceitos(qid: str) -> dict:
 
 # Próximas perguntas sugeridas no fim de cada dashboard (2 a 3, continuação natural da análise).
 SEGUINTES: dict[str, tuple[str, ...]] = {
+    # das simples para as análises completas
+    "simples_tabela": ("ranking_municipios", "capacidade_municipios", "visao_geral"),
+    "simples_grafico": ("sazonal_estado", "sazonal_drs", "custos"),
+    "simples_mapa": ("ranking_municipios", "polos_atracao", "clusters"),
     "visao_geral": ("sazonal_estado", "ranking_municipios", "custos"),
     "custos": ("sazonal_causas", "ranking_permanencia", "ocupacao_hospitais"),
     "sazonal_estado": ("sazonal_drs", "sazonal_causas", "ocupacao_hospitais"),

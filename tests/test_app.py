@@ -9,6 +9,10 @@ from app.main import app
 from app.matcher import extrair, match
 from app.questions import CATALOGO
 
+# análises completas (indicadores, alertas, achados, relevância) e perguntas simples (um resultado só)
+COMPLETAS = [q for q in CATALOGO if not q.simples]
+SIMPLES = [q for q in CATALOGO if q.simples]
+
 client = TestClient(app)
 
 
@@ -48,7 +52,7 @@ def test_extrai_entidades():
     assert "municipios" not in p
 
 
-@pytest.mark.parametrize("q", CATALOGO, ids=lambda q: q.id)
+@pytest.mark.parametrize("q", COMPLETAS, ids=lambda q: q.id)
 def test_builders_retornam_dashboard(q):
     d = dashboards.build(q.id, dict(q.exemplo_params))
     assert d["title"] and d["charts"] and d["insights"]
@@ -65,7 +69,8 @@ def test_builders_com_filtros(params):
 
 def test_api():
     assert client.get("/api/health").json()["ok"]
-    assert len(client.get("/api/questions").json()["categorias"]) == 5
+    cats = client.get("/api/questions").json()["categorias"]
+    assert len(cats) == 6 and cats[0]["nome"] == "Perguntas simples"  # simples na 1ª coluna
     r = client.post("/api/ask", json={"text": "hospitais de Campinas em 2025"}).json()
     assert r["matched"] and r["question_id"] == "ranking_hospitais" and r["params"]["ano"] == 2025
     r = client.post("/api/ask", json={"text": "xyz", "question_id": "fatores"}).json()
@@ -80,7 +85,7 @@ from app.sql_oracle import oracle_sql  # noqa: E402
 FILTROS = [{}, {"ano": 2025}, {"drs": 7}, {"cap_cid": "X"}, {"municipios": [350950, 354340]}]
 
 
-@pytest.mark.parametrize("q", CATALOGO, ids=lambda q: q.id)
+@pytest.mark.parametrize("q", COMPLETAS, ids=lambda q: q.id)
 def test_alertas_em_todo_dashboard(q):
     d = dashboards.build(q.id, dict(q.exemplo_params))
     assert d["alertas"], q.id
@@ -137,11 +142,11 @@ from app import relevancia as R  # noqa: E402
 
 
 def test_relevancia_cobre_catalogo_e_regras():
-    assert {q.id for q in CATALOGO} == set(R.POR_QUE)
+    assert {q.id for q in COMPLETAS} == set(R.POR_QUE)
     assert set(A.REGRAS) == set(R.ACOES_ALERTA)
 
 
-@pytest.mark.parametrize("q", CATALOGO, ids=lambda q: q.id)
+@pytest.mark.parametrize("q", COMPLETAS, ids=lambda q: q.id)
 def test_relevancia_em_todo_dashboard(q):
     r = dashboards.build(q.id, q.exemplo_params)["relevancia"]
     assert r["importancia"] and r["acoes"] and r["resumo"]
@@ -289,6 +294,37 @@ def test_rotas_landing_e_aplicacao():
     assert r.status_code == 200 and "Abrir o DataCare" in r.text and 'href="/app"' in r.text
     assert "landing.css" in r.text and "plotly" not in r.text  # landing leve, sem Plotly
     d = client.get("/api/resumo").json()
-    assert d["municipios"] == 645 and d["internacoes"] > 5_000_000 and d["analises"] == len(CATALOGO)
+    assert d["municipios"] == 645 and d["internacoes"] > 5_000_000 and d["analises"] == len(COMPLETAS) and d["simples"] == len(SIMPLES) == 3
     for f in ("static/marca/app-claro.webp", "static/marca/mapa-claro.webp", "static/marca/app-escuro.webp", "static/vendor/fonts/Geist-Variable.woff2"):
         assert client.get("/" + f).status_code == 200
+
+
+# ------------------------------------------------------- perguntas simples --
+@pytest.mark.parametrize("params", [{}, {"ano": 2025}, {"drs": 7}, {"cap_cid": "X"}, {"carater": "Eletivo"}])
+@pytest.mark.parametrize("q", SIMPLES, ids=lambda q: q.id)
+def test_perguntas_simples(q, params):
+    d = dashboards.build(q.id, params)
+    # relatório de um resultado só: sem situação, achados ou "por que importa"
+    assert d["simples"] == q.simples and d["title"]
+    assert d["status_geral"] is None and d["relevancia"] is None and not d["alertas"] and not d["insights"]
+    assert not d["kpis"] and d["seguintes"] and d["sql"]
+    if q.simples == "tabela":
+        assert not d["charts"] and len(d["tables"]) == 1 and d["tables"][0]["rows"]
+    else:
+        assert len(d["charts"]) == 1 and not d["tables"]
+        tipo = d["charts"][0]["traces"][-1]["type"]
+        assert tipo == ("choropleth" if q.simples == "mapa" else "scatter")
+    json.dumps(d, default=float)
+
+
+def test_simples_tabela_tem_todos_os_municipios():
+    rows = dashboards.build("simples_tabela", {})["tables"][0]["rows"]
+    assert len(rows) == 645 and rows[0]["n"] >= rows[-1]["n"]  # do maior para o menor
+
+
+def test_simples_nao_roubam_as_completas():
+    assert match("me dá uma planilha por município").question.id == "simples_tabela"
+    assert match("mapa de internações").question.id == "simples_mapa"
+    assert match("gráfico de internações por mês").question.id == "simples_grafico"
+    for q in COMPLETAS:
+        assert match(q.texto).question.id == q.id

@@ -47,7 +47,7 @@ Points that are not obvious:
 - Analyses use the admission month (`mes_inter`). AIHs with IDENT=5 (long stay) add to amounts but do not count as hospitalizations.
 
 **How a question is answered** (`app/`):
-1. `matcher.match(text, question_id)` normalizes the text and extracts entities (`municipios`, `drs`, `ano`, `cap_cid`, `top_n`, `carater`). It then scores the 18 catalog questions in `questions.py` with RapidFuzz plus keywords. Below `LIMIAR`, it returns suggestions instead of a match.
+1. `matcher.match(text, question_id)` normalizes the text and extracts entities (`municipios`, `drs`, `ano`, `cap_cid`, `top_n`, `carater`). It then scores the 21 catalog questions in `questions.py` with RapidFuzz plus keywords. Below `LIMIAR`, it returns suggestions instead of a match.
 2. `dashboards.build(qid, params, pergunta)` dispatches to one builder per question through `BUILDERS`. Each builder returns KPIs, `alertas`, insights, chart specs, tables and `filtros`. `build()` then adds:
    - `status_geral`;
    - `relevancia` (`relevancia.py`);
@@ -56,6 +56,13 @@ Points that are not obvious:
 3. When the request has `question_id` + `params`, the filter bar is in use. `main.py` then replaces the extracted params with `matcher.validar_params()`, a whitelist checked against the DB and against `FILTROS[qid]`.
 
 Adding a question touches several places: `CATALOGO`, `FILTROS`, `SEGUINTES` (all in `questions.py`), `BUILDERS` (`dashboards.py`), `POR_QUE` (`relevancia.py`), and a query in `sql_oracle.py`. Tests assert that these stay in sync.
+
+**Simple questions** (category "Perguntas simples", the first catalog column) have `Question.simples` set to `"tabela"`, `"grafico"` or `"mapa"` and return a single result: one table (opened, with "Baixar CSV" highlighted), one chart, or one map.
+- They have filters, the Oracle SQL and `seguintes` pointing to full analyses.
+- They have no KPIs, alerts, insights or `POR_QUE` entry.
+- `_montar` sets `status_geral` and `relevancia` to `None` for them, so the tab shows the neutral icon.
+- The `COMPLETAS` and `SIMPLES` lists in `tests/test_app.py` keep the full-analysis assertions off them.
+- `/api/resumo` counts `analises` (full) and `simples` separately. `DESCRICAO_CATEGORIA` adds the line under a category name.
 
 **Cross-cutting rules**:
 - `alerts.py`: `REGRAS` holds the Aceitável/Alerta/Crítico thresholds. `classificar()` returns a `chave` that `relevancia.ACOES_ALERTA` maps to recommended actions. The municipal hospitalization rate (`taxa`) is compared with the **median** of municipalities with 5k+ inhabitants, not the state mean.

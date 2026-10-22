@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 
 from app import dashboards, db
 from app.matcher import match, validar_params
-from app.questions import CATALOGO, CATEGORIAS, POR_ID, filtros_aceitos
+from app.questions import CATALOGO, CATEGORIAS, DESCRICAO_CATEGORIA, POR_ID, filtros_aceitos
 
 STATIC = Path(__file__).resolve().parents[1] / "static"
 VENDOR = (STATIC / "vendor").resolve()
@@ -90,7 +90,8 @@ def aplicacao():
 @app.get("/api/questions")
 def questions():
     return {"categorias": [
-        {"nome": c, "perguntas": [{"id": q.id, "texto": q.texto, "categoria": c} for q in CATALOGO if q.categoria == c]}
+        {"nome": c, "descricao": DESCRICAO_CATEGORIA.get(c, ""),
+         "perguntas": [{"id": q.id, "texto": q.texto, "categoria": c} for q in CATALOGO if q.categoria == c]}
         for c in CATEGORIAS]}
 
 
@@ -138,7 +139,9 @@ def _resumo() -> dict:
     return {"internacoes": int(db.scalar("SELECT SUM(internacoes) FROM agg_mensal_hosp")),
             "municipios": int(db.scalar("SELECT COUNT(*) FROM dim_municipio")),
             "hospitais": int(db.scalar("SELECT COUNT(DISTINCT cnes) FROM agg_mensal_hosp")),
-            "ano_inicio": anos[0], "ano_fim": anos[-1], "analises": len(CATALOGO)}
+            "ano_inicio": anos[0], "ano_fim": anos[-1],
+            "analises": sum(1 for q in CATALOGO if not q.simples),
+            "simples": sum(1 for q in CATALOGO if q.simples)}
 
 
 @app.get("/api/health")

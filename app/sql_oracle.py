@@ -251,6 +251,42 @@ WHERE t.populacao >= {min_pop}{extra}
 ORDER BY t.taxa_1k DESC{top}"""
 
 
+def simples_tabela(p):
+    w = _preds(p)
+    return [_bloco("Internações por município (para baixar em CSV)", f"""
+SELECT m.nome                                   AS municipio,
+       m.drs_nome                               AS drs,
+       SUM(a.internacoes)                       AS internacoes,
+       ROUND({_pop(p)})                         AS populacao,
+       ROUND(SUM(a.internacoes) / {_anos(p)} * 1000 / ({_pop(p)}), 1) AS internacoes_1k_ano
+FROM agg_mensal_res a
+JOIN dim_municipio m ON m.cod_mun = a.mun_res{_where(w)}
+GROUP BY m.nome, m.drs_nome, {_pop(p)}
+ORDER BY internacoes DESC""")]
+
+
+def simples_grafico(p):
+    w = _preds(p, ano=False)
+    return [_bloco("Internações por mês", f"""
+SELECT a.mes_inter, SUM(a.internacoes) AS internacoes
+FROM agg_mensal_hosp a
+JOIN dim_municipio m ON m.cod_mun = a.mun_int{_where(w)}
+GROUP BY a.mes_inter
+ORDER BY a.mes_inter""")]
+
+
+def simples_mapa(p):
+    w = _preds(p)
+    return [_bloco("Internações por 1.000 habitantes, por município (mapa)", f"""
+SELECT m.cod_mun,
+       m.nome AS municipio,
+       ROUND(SUM(a.internacoes) / {_anos(p)} * 1000 / ({_pop(p)}), 1) AS internacoes_1k_ano
+FROM agg_mensal_res a
+JOIN dim_municipio m ON m.cod_mun = a.mun_res{_where(w)}
+GROUP BY m.cod_mun, m.nome, {_pop(p)}
+-- a malha dos municípios (IBGE) colore o mapa no navegador""")]
+
+
 def ranking_municipios(p):
     return [_bloco("Ranking de municípios por taxa de internação",
                    _taxa_municipios(p, min_pop=20000, top_n=p.get("top_n") or 20))]
@@ -574,6 +610,7 @@ ORDER BY ABS(coef) DESC"""),
 
 
 QUERIES: dict[str, Callable[[dict], list[dict]]] = {
+    "simples_tabela": simples_tabela, "simples_grafico": simples_grafico, "simples_mapa": simples_mapa,
     "visao_geral": visao_geral, "custos": custos,
     "sazonal_estado": sazonal_estado, "sazonal_drs": sazonal_drs, "sazonal_causas": sazonal_causas,
     "sazonal_cap_regiao": sazonal_cap_regiao,
