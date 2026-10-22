@@ -279,3 +279,11 @@ def test_gzip_e_cache_do_vendor():
     r = client.get("/static/vendor/plotly.min.js", headers={"Accept-Encoding": "gzip"})
     assert r.headers["content-encoding"] == "gzip" and "max-age" in r.headers["cache-control"]
     assert "max-age" not in client.get("/static/js/app.js").headers.get("cache-control", "")
+
+
+# ----------------------------------------------------------------- rotas ---
+def test_rotas_landing_e_aplicacao():
+    r = client.get("/app")
+    assert r.status_code == 200 and 'id="composer"' in r.text and "/static/css/base.css" in r.text
+    r = client.get("/", follow_redirects=False)
+    assert r.status_code in (200, 307)

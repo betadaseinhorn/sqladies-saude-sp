@@ -8,7 +8,7 @@
 
 **DataCare_** ("Transformando dados em cuidado e decisão") é a solução do grupo **SQLadies** no Challenge Oracle + FIAP.
 A identidade visual (violeta `#7E3EE0`, roxo profundo `#230E50`, lilás e creme) vem da capa do grupo. A paleta dos gráficos foi
-validada para daltonismo nos temas claro e escuro (`static/css/style.css`); o logo e o ícone ficam em `static/marca/`.
+validada para daltonismo nos temas claro e escuro (`static/css/base.css`); o logo e o ícone ficam em `static/marca/`.
 
 Página web com uma aba **Início** (caixa de pergunta centralizada): o usuário escolhe ou digita uma pergunta e uma
 **nova aba** é aberta com o dashboard gerado na hora: KPIs, **alertas (Aceitável / Alerta / Crítico)**, gráficos
@@ -33,7 +33,7 @@ python -m venv .venv
 pip install -r requirements.txt
 
 python pipeline.py                # 1ª vez: baixa cerca de 550 MB e monta data/sqladies.db (10–20 min)
-uvicorn app.main:app              # abra http://localhost:8000
+uvicorn app.main:app              # abra http://localhost:8000 (aplicação em /app)
 ```
 
 Depois do pipeline, o app não usa a internet: o Plotly está em `static/vendor/` e as fontes são do sistema.
@@ -84,7 +84,7 @@ app/        main.py           FastAPI (/api/questions, /api/ask, /api/filters)
             relevancia.py     por que cada pergunta importa e ações sugeridas conforme os alertas
             sql_oracle.py     query Oracle equivalente de cada dashboard, com os filtros da pergunta
 sql/        oracle_schema.sql DDL Oracle do modelo relacional (partições, JSON, materialized views)
-static/     index.html, css/style.css, js/app.js, vendor/ (plotly.min.js, malha de SP, topojson)
+static/     app.html (aplicação em /app), css/base.css (tokens e marca) + css/app.css, js/app.js, vendor/ (plotly, malha de SP, topojson)
 ```
 
 ## Interface: aba Início e abas de dashboard

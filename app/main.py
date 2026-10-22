@@ -14,7 +14,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -77,7 +77,14 @@ def _clean(o):
 
 @app.get("/")
 def index():
-    return FileResponse(STATIC / "index.html")
+    # a landing page entra no passo 3 do redesign; até lá, "/" leva direto à aplicação
+    # (o navegador preserva o #pergunta=… no redirecionamento)
+    return RedirectResponse("/app", status_code=307)
+
+
+@app.get("/app")
+def aplicacao():
+    return FileResponse(STATIC / "app.html")
 
 
 @app.get("/api/questions")

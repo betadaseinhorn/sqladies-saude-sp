@@ -1,109 +1,15 @@
 /* DataCare_ (grupo SQLadies) — adaptação demonstrativa da aplicação entregue à Oracle
-   Tema claro/escuro com tokens. Cores da marca tiradas da capa do grupo: violeta #7E3EE0,
-   roxo profundo #230E50, lilás #BFAED8, creme #FFFEF3. Paleta dos gráficos validada para
-   daltonismo (skill dataviz, validate_palette.js) nos dois temas; status (verde/amarelo/vermelho)
-   nunca muda. */
-:root {
-  color-scheme: light;
-  --page: #f4f1f9;
-  --surface: #fffef8;
-  --surface-2: #f1ecf8;
-  --tabbar: #ebe5f5;
-  --border: rgba(35, 14, 80, 0.11);
-  --text: #1d1433;
-  --text-2: #4e3d70;
-  --muted: #6a5e82;
-  --grid: #e7e1ef;
-  --axis: #cbc1da;
-  --accent: #7e3ee0;
-  --accent-ink: #5f27b8;
-  --accent-wash: #efe7fc;
-  --marca-data: #7e3ee0;
-  --marca-care: #230e50;
-  --shadow: 0 1px 2px rgba(35,14,80,.05), 0 6px 24px rgba(35,14,80,.07);
-  --code-bg: #f6f2fb;
-  --code-kw: #5f27b8; --code-str: #006300; --code-num: #a3460f; --code-com: #6a5e82; --code-fn: #b52a5e;
+   Estilos da aplicação (/app). Tokens, fontes e marca ficam em base.css. */
 
-  --s1: #7e3ee0; --s2: #eb6834; --s3: #0e9aa7; --s4: #d6336c;
-  --s5: #c99a2e; --s6: #3b5bdb; --s7: #9c3f7a; --s8: #6b8e23;
-  --div-neg: #7e3ee0; --div-mid: #f0efec; --div-pos: #eb6834;
-  --seq-0: #ede5fb; --seq-1: #230e50;
-
-  /* status (fixo, nunca tematizado) + lavagens para fundo */
-  --ok: #0ca30c; --warn: #fab219; --crit: #d03b3b;
-  --ok-wash: #e9f6e9; --warn-wash: #fef5e0; --crit-wash: #fbeaea;
-
-  --radius: 14px;
-  /* escala de forma e movimento (cores ficam acima, intocadas) */
-  --r-sm: 8px; --r-md: 12px; --r-lg: 16px;
-  --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-lg: 16px; --fs-xl: 22px;
-  --dur: 160ms; --ease: cubic-bezier(.2, .8, .2, 1);
-  --tabbar-h: 47px;
-  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-marca: "DejaVu Sans", Verdana, system-ui, sans-serif;
-  --mono: ui-monospace, "Cascadia Code", Consolas, "Courier New", monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --page: #120a22; --surface: #1c1430; --surface-2: #251a3d; --tabbar: #170f29;
-    --border: rgba(255,255,255,0.10); --text: #efeaf7; --text-2: #c9bfe0; --muted: #9286ab;
-    --grid: #2c2342; --axis: #3d3358; --accent: #8d4be8; --accent-ink: #c4a6f7; --accent-wash: #2a1c48;
-    --marca-data: #a77bf3; --marca-care: #efeaf7;
-    --shadow: none; --code-bg: #150e26;
-    --code-kw: #c4a6f7; --code-str: #0ca30c; --code-num: #ec835a; --code-com: #9286ab; --code-fn: #e0517f;
-    --s1: #9a63ef; --s2: #d95926; --s3: #129aa6; --s4: #e0517f;
-    --s5: #b0852a; --s6: #5b7cf0; --s7: #b0568f; --s8: #7f9e2e;
-    --div-neg: #9a63ef; --div-mid: #3a3542; --div-pos: #d95926;
-    --seq-0: #2a1c48; --seq-1: #d9c8fb;
-    --ok-wash: #142614; --warn-wash: #2b2410; --crit-wash: #2d1616;
-  }
-}
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --page: #120a22; --surface: #1c1430; --surface-2: #251a3d; --tabbar: #170f29;
-  --border: rgba(255,255,255,0.10); --text: #efeaf7; --text-2: #c9bfe0; --muted: #9286ab;
-  --grid: #2c2342; --axis: #3d3358; --accent: #8d4be8; --accent-ink: #c4a6f7; --accent-wash: #2a1c48;
-  --marca-data: #a77bf3; --marca-care: #efeaf7;
-  --shadow: none; --code-bg: #150e26;
-  --code-kw: #c4a6f7; --code-str: #0ca30c; --code-num: #ec835a; --code-com: #9286ab; --code-fn: #e0517f;
-  --s1: #9a63ef; --s2: #d95926; --s3: #129aa6; --s4: #e0517f;
-  --s5: #b0852a; --s6: #5b7cf0; --s7: #b0568f; --s8: #7f9e2e;
-  --div-neg: #9a63ef; --div-mid: #3a3542; --div-pos: #d95926;
-  --seq-0: #2a1c48; --seq-1: #d9c8fb;
-  --ok-wash: #142614; --warn-wash: #2b2410; --crit-wash: #2d1616;
-}
-* { box-sizing: border-box; }
 /* reserva a barra de abas + a faixa "Perguntas" (fixas) ao rolar até um item ou ao focar com Tab */
 html { height: 100%; scroll-padding-top: calc(var(--tabbar-h) + 56px); }
-.pular { position: absolute; left: 12px; top: -60px; z-index: 20; padding: 10px 16px; border-radius: 10px; background: var(--accent);
-  color: #fff; font-weight: 600; text-decoration: none; }
-.pular:focus { top: 8px; outline: 2px solid var(--text); outline-offset: 2px; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 #panels:focus { outline: none; }
-body { min-height: 100%; margin: 0; }
-body { background: var(--page); color: var(--text); font: 15px/1.5 var(--font); -webkit-font-smoothing: antialiased;
-  display: flex; flex-direction: column; }
-button, textarea { font: inherit; color: inherit; }
-::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); color: var(--text); }
-:root { accent-color: var(--accent); caret-color: var(--accent); scrollbar-color: var(--axis) transparent; }
-::placeholder { color: var(--muted); opacity: 1; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-button, .chip, .tab, .turno-pill, select { transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease),
-  color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease); }
-button:not(:disabled):active, .chip:active { transform: scale(.98); }
-.ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
 
 /* ---------------------------------------------------------------- abas --- */
 .tabbar { display: flex; align-items: flex-end; gap: 8px; padding: 8px 12px 0; background: var(--tabbar);
   border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
 .logo { align-self: center; padding-bottom: 6px; display: flex; align-items: center; gap: 6px; color: var(--marca-data); }
-.marca-ico { width: 28px; height: 28px; display: block; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2;
-  stroke-linecap: round; stroke-linejoin: round; }
-/* logo-texto DataCare_: "Data" e "_" em violeta, "Care" em roxo profundo (claro em tema escuro) */
-.marca-texto { font-family: var(--font-marca); font-weight: 700; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
-.marca-texto .m-data, .marca-texto .m-u { color: var(--marca-data); }
-.marca-texto .m-care { color: var(--marca-care); }
 .logo .marca-texto { font-size: 17px; }
 .tabs { flex: 1; display: flex; gap: 2px; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; min-width: 0; }
 .tab { position: relative; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px 0 12px;
