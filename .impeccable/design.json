@@ -1,0 +1,427 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-22T05:19:01+00:00",
+  "title": "Design System: DataCare_",
+  "extensions": {
+    "colorMeta": {
+      "violet": {
+        "role": "primary",
+        "displayName": "Signal Violet",
+        "canonical": "#7e3ee0",
+        "tonalRamp": [
+          "#200b42",
+          "#36126e",
+          "#4c199a",
+          "#6120c6",
+          "#8446e1",
+          "#ad84eb",
+          "#d3bdf4",
+          "#f0e9fb"
+        ]
+      },
+      "violet-ink": {
+        "role": "primary",
+        "displayName": "Violet Ink",
+        "canonical": "#5f27b8",
+        "tonalRamp": [
+          "#210d3f",
+          "#361669",
+          "#4c1f93",
+          "#6228bd",
+          "#844eda",
+          "#ad89e6",
+          "#d3c0f2",
+          "#f0eafb"
+        ]
+      },
+      "violet-wash": {
+        "role": "primary",
+        "displayName": "Violet Wash",
+        "canonical": "#efe7fc",
+        "tonalRamp": [
+          "#1f0844",
+          "#340e71",
+          "#49149f",
+          "#5d19cc",
+          "#8041e7",
+          "#aa80ef",
+          "#d2bbf7",
+          "#f0e8fc"
+        ]
+      },
+      "deep-purple": {
+        "role": "secondary",
+        "displayName": "Deep Purple",
+        "canonical": "#230e50",
+        "tonalRamp": [
+          "#1c0b41",
+          "#2f136d",
+          "#421b98",
+          "#5522c3",
+          "#7949df",
+          "#a585ea",
+          "#cfbef4",
+          "#efe9fb"
+        ]
+      },
+      "cream": {
+        "role": "tertiary",
+        "displayName": "Cream",
+        "canonical": "#fffef3",
+        "tonalRamp": [
+          "#4c4600",
+          "#807500",
+          "#b2a400",
+          "#e6d200",
+          "#ffed29",
+          "#fff370",
+          "#fff9b2",
+          "#fffde5"
+        ]
+      },
+      "page": {
+        "role": "neutral",
+        "displayName": "Lilac Paper",
+        "canonical": "#f4f1f9",
+        "tonalRamp": [
+          "#221736",
+          "#392659",
+          "#50367d",
+          "#6745a1",
+          "#8969bf",
+          "#b09bd4",
+          "#d5c9e8",
+          "#f1edf7"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Cream Panel",
+        "canonical": "#fffef8",
+        "tonalRamp": [
+          "#4c4200",
+          "#806d00",
+          "#b29900",
+          "#e6c500",
+          "#ffe029",
+          "#ffeb70",
+          "#fff4b2",
+          "#fffbe5"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Lilac Mist",
+        "canonical": "#f1ecf8",
+        "tonalRamp": [
+          "#231538",
+          "#3b225d",
+          "#523082",
+          "#6a3ea8",
+          "#8c62c5",
+          "#b297d9",
+          "#d6c7ea",
+          "#f1ecf8"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1d1433",
+        "tonalRamp": [
+          "#1f1637",
+          "#34245c",
+          "#493280",
+          "#5e41a5",
+          "#8065c3",
+          "#ab98d7",
+          "#d2c8e9",
+          "#f0edf8"
+        ]
+      },
+      "ok": {
+        "role": "status",
+        "displayName": "Status Ok",
+        "canonical": "#0ca30c",
+        "tonalRamp": [
+          "#054705",
+          "#097709",
+          "#0ca60c",
+          "#10d610",
+          "#37f037",
+          "#7af57a",
+          "#b8fab8",
+          "#e7fde7"
+        ]
+      },
+      "warn": {
+        "role": "status",
+        "displayName": "Status Warn",
+        "canonical": "#fab219",
+        "tonalRamp": [
+          "#4b3302",
+          "#7d5603",
+          "#af7804",
+          "#e19a05",
+          "#fab92d",
+          "#fcd073",
+          "#fde6b4",
+          "#fef7e6"
+        ]
+      },
+      "crit": {
+        "role": "status",
+        "displayName": "Status Critical",
+        "canonical": "#d03b3b",
+        "tonalRamp": [
+          "#3e0f0f",
+          "#671919",
+          "#902323",
+          "#b92c2c",
+          "#d65252",
+          "#e38c8c",
+          "#f0c1c1",
+          "#faeaea"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Landing hero headline."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Landing section heads and closing band."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Dashboard and app home titles; KPI values."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, 15px app / 16px landing."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Chips, captions, tables."
+      },
+      "figure": {
+        "displayName": "Figure",
+        "purpose": "Live and team-reported headline figures, Geist Mono tabular."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Oracle SQL and the window address bar."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "Only the DataCare_ logotype."
+      }
+    },
+    "shadows": [
+      {
+        "name": "ambient",
+        "value": "0 1px 2px rgba(35,14,80,.05), 0 6px 24px rgba(35,14,80,.07)",
+        "purpose": "Question box, composer, question bubble; none in dark theme."
+      },
+      {
+        "name": "window-lift",
+        "value": "0 1px 2px rgba(35,14,80,.06), 0 24px 64px -24px rgba(35,14,80,.28)",
+        "purpose": "Browser frames around screenshots; dark uses rgba(0,0,0,.4) / .7."
+      },
+      {
+        "name": "focus-halo",
+        "value": "0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent)",
+        "purpose": "Landing question box focus-within."
+      }
+    ],
+    "motion": [
+      {
+        "name": "dur",
+        "value": "160ms",
+        "purpose": "All interactive state transitions."
+      },
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.2, .8, .2, 1)",
+        "purpose": "Default easing."
+      },
+      {
+        "name": "press",
+        "value": "transform: scale(.98)",
+        "purpose": "Active state on buttons and chips."
+      },
+      {
+        "name": "skeleton",
+        "value": "1.2s ease-in-out infinite",
+        "purpose": "Shimmer on the dashboard-shaped loading skeleton."
+      },
+      {
+        "name": "view-transition",
+        "value": "@view-transition { navigation: auto }",
+        "purpose": "Landing to app, logo shared as marca-logo; off under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "landing-stack",
+        "value": "1080px"
+      },
+      {
+        "name": "app-stack",
+        "value": "960px"
+      },
+      {
+        "name": "landing-mobile",
+        "value": "720px"
+      },
+      {
+        "name": "app-mobile",
+        "value": "640px"
+      },
+      {
+        "name": "narrowest-checked",
+        "value": "390px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The violet action: Abrir o DataCare, Perguntar.",
+      "html": "<button class=\"ds-btn-primary\">Abrir o DataCare</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid transparent;background:var(--accent,#7e3ee0);color:#fff;font:550 14px/1 Geist,system-ui,sans-serif;cursor:pointer;transition:background-color 160ms cubic-bezier(.2,.8,.2,1),transform 160ms cubic-bezier(.2,.8,.2,1)}.ds-btn-primary:hover{background:color-mix(in srgb,var(--accent,#7e3ee0) 86%,#000)}.ds-btn-primary:active{transform:scale(.98)}.ds-btn-primary:focus-visible{outline:2px solid var(--accent,#7e3ee0);outline-offset:2px}"
+    },
+    {
+      "name": "Button on Deep Purple",
+      "kind": "button",
+      "refersTo": "button-on-purple",
+      "description": "Cream and outline buttons on the closing band.",
+      "html": "<div class=\"ds-band\"><a class=\"ds-btn-claro\" href=\"#\">Abrir o DataCare</a><a class=\"ds-btn-contorno\" href=\"#\">Assistir ao pitch</a></div>",
+      "css": ".ds-band{display:flex;gap:10px;padding:24px;border-radius:16px;background:#230e50}.ds-btn-claro,.ds-btn-contorno{display:inline-flex;align-items:center;height:44px;padding:0 16px;border-radius:8px;font:550 14px/1 Geist,system-ui,sans-serif;text-decoration:none;border:1px solid transparent;transition:background-color 160ms,border-color 160ms}.ds-btn-claro{background:#fffef3;color:#230e50}.ds-btn-claro:hover{background:#fff}.ds-btn-contorno{border-color:rgba(255,254,243,.35);color:#fffef3}.ds-btn-contorno:hover{border-color:#fffef3}.ds-btn-claro:focus-visible,.ds-btn-contorno:focus-visible{outline:2px solid #fffef3;outline-offset:2px}"
+    },
+    {
+      "name": "Utility Button",
+      "kind": "button",
+      "refersTo": "button-utility",
+      "description": "Hairline secondary actions: CSV, imprimir, copiar SQL, limpar filtros.",
+      "html": "<button class=\"ds-btn-util\"><svg viewBox=\"0 0 24 24\" width=\"15\" height=\"15\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3v12M7 10l5 5 5-5M5 21h14\"/></svg>CSV</button>",
+      "css": ".ds-btn-util{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--border,rgba(35,14,80,.11));border-radius:8px;background:var(--surface,#fffef8);color:var(--text-2,#4e3d70);font:500 12.5px Geist,system-ui,sans-serif;cursor:pointer;transition:border-color 160ms,color 160ms}.ds-btn-util:hover{border-color:var(--accent,#7e3ee0);color:var(--text,#1d1433)}.ds-btn-util:focus-visible{outline:2px solid var(--accent,#7e3ee0);outline-offset:2px}"
+    },
+    {
+      "name": "Question Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Catalog and follow-up questions as pills.",
+      "html": "<button class=\"ds-chip\">Compare Santos e Guarujá</button>",
+      "css": ".ds-chip{border:1px solid var(--border,rgba(35,14,80,.11));background:var(--surface,#fffef8);border-radius:999px;padding:6px 13px;font:400 13px/1.35 Geist,system-ui,sans-serif;color:var(--text,#1d1433);cursor:pointer;transition:background-color 160ms,border-color 160ms,transform 160ms}.ds-chip:hover{border-color:var(--accent,#7e3ee0);background:var(--accent-wash,#efe7fc)}.ds-chip:focus-visible{outline:2px solid var(--accent,#7e3ee0);outline-offset:1px}.ds-chip:active{transform:scale(.98)}"
+    },
+    {
+      "name": "Filter Field",
+      "kind": "input",
+      "refersTo": "input-filter",
+      "description": "Labelled select in the dashboard filter bar.",
+      "html": "<label class=\"ds-filtro\"><span>Ano</span><select><option>2025</option><option>2024</option></select></label>",
+      "css": ".ds-filtro{display:flex;flex-direction:column;gap:3px;font-family:Geist,system-ui,sans-serif}.ds-filtro span{font-size:12px;font-weight:500;color:var(--text-2,#4e3d70)}.ds-filtro select{font:inherit;font-size:14px;color:var(--text,#1d1433);background:var(--surface,#fffef8);border:1px solid var(--border,rgba(35,14,80,.11));border-radius:8px;padding:6px 10px;min-height:34px}.ds-filtro select:hover{border-color:color-mix(in srgb,var(--accent,#7e3ee0) 45%,var(--border,rgba(35,14,80,.11)))}.ds-filtro select:focus-visible{outline:2px solid var(--accent,#7e3ee0);outline-offset:0}"
+    },
+    {
+      "name": "Composer",
+      "kind": "input",
+      "refersTo": "composer",
+      "description": "The app question box; the focus ring wraps the whole container.",
+      "html": "<form class=\"ds-composer\"><textarea rows=\"1\" placeholder=\"Pergunte sobre as internações do SUS…\"></textarea><button type=\"button\" aria-label=\"Enviar\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></button></form>",
+      "css": ".ds-composer{display:flex;gap:8px;align-items:flex-end;background:var(--surface,#fffef8);border:1px solid var(--border,rgba(35,14,80,.11));border-radius:22px;padding:10px 10px 10px 20px;box-shadow:0 1px 2px rgba(35,14,80,.05),0 6px 24px rgba(35,14,80,.07)}.ds-composer:focus-within{border-color:var(--accent,#7e3ee0);box-shadow:0 0 0 2px var(--accent,#7e3ee0)}.ds-composer textarea{flex:1;border:0;outline:0;background:transparent;resize:none;padding:9px 0;font:400 16px/1.45 Geist,system-ui,sans-serif;color:var(--text,#1d1433)}.ds-composer button{width:42px;height:42px;border-radius:14px;border:0;background:var(--accent,#7e3ee0);color:#fff;display:grid;place-items:center;cursor:pointer}.ds-composer button:hover{background:color-mix(in srgb,var(--accent,#7e3ee0) 86%,#000)}.ds-composer button:focus-visible{outline:2px solid var(--accent,#7e3ee0);outline-offset:2px}"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "custom",
+      "refersTo": "status-badge",
+      "description": "Status as icon plus label on a wash, never color alone.",
+      "html": "<span class=\"ds-status ds-crit\"><span class=\"ds-sico\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 7v6M12 17h.01\"/></svg></span>Crítico</span> <span class=\"ds-status ds-warn\"><span class=\"ds-sico\"><svg viewBox=\"0 0 24 24\"><path d=\"M12 8v5M12 16.5h.01\"/></svg></span>Alerta</span> <span class=\"ds-status ds-ok\"><span class=\"ds-sico\"><svg viewBox=\"0 0 24 24\"><path d=\"M5 12l5 5 9-10\"/></svg></span>Aceitável</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 4px;border-radius:999px;font:650 13px Geist,system-ui,sans-serif;color:var(--text,#1d1433)}.ds-sico{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;color:#fff}.ds-sico svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.ds-crit{background:var(--crit-wash,#fbeaea)}.ds-crit .ds-sico{background:#d03b3b}.ds-warn{background:var(--warn-wash,#fef5e0)}.ds-warn .ds-sico{background:#fab219;color:#0b0b0b}.ds-ok{background:var(--ok-wash,#e9f6e9)}.ds-ok .ds-sico{background:#0ca30c}"
+    },
+    {
+      "name": "KPI Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Peers in one panel split by hairlines, not a card each.",
+      "html": "<div class=\"ds-kpis\"><div><span>Internações</span><b>2,9 mi</b></div><div><span>Taxa por mil hab.</span><b>63,4</b></div><div><span>Permanência média</span><b>5,8 dias</b></div></div>",
+      "css": ".ds-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--surface,#fffef8);border:1px solid var(--border,rgba(35,14,80,.11));border-radius:12px;overflow:hidden;font-family:Geist,system-ui,sans-serif}.ds-kpis>div{padding:14px 18px;box-shadow:-1px 0 0 var(--border,rgba(35,14,80,.11))}.ds-kpis span{display:block;font-size:13px;color:var(--text-2,#4e3d70)}.ds-kpis b{display:block;margin-top:2px;font-size:22px;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--text,#1d1433)}"
+    },
+    {
+      "name": "Browser Window",
+      "kind": "custom",
+      "refersTo": "browser-window",
+      "description": "Frame for real app screenshots.",
+      "html": "<figure class=\"ds-janela\"><div class=\"ds-janela-barra\"><i></i><i></i><i></i><span>localhost:8000/app</span></div><div class=\"ds-janela-tela\"></div></figure>",
+      "css": ".ds-janela{margin:0;border:1px solid var(--border,rgba(35,14,80,.11));border-radius:12px;overflow:hidden;background:var(--surface,#fffef8);box-shadow:0 1px 2px rgba(35,14,80,.06),0 24px 64px -24px rgba(35,14,80,.28)}.ds-janela-barra{height:34px;display:flex;align-items:center;gap:6px;padding:0 12px;border-bottom:1px solid var(--border,rgba(35,14,80,.11));background:var(--surface-2,#f1ecf8)}.ds-janela-barra i{width:9px;height:9px;border-radius:50%;background:var(--axis,#cbc1da)}.ds-janela-barra span{margin-left:10px;font:500 12px 'Geist Mono',ui-monospace,monospace;color:var(--muted,#6a5e82)}.ds-janela-tela{height:160px;background:var(--page,#f4f1f9)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Evidence Desk",
+    "overview": "DataCare_ is a data product built to the category standard at Vercel's level of craft. A question box comes first, then the real dashboard as proof, then the sources. The surfaces are quiet: a lilac-tinted page, cream panels, hairline borders, and deep-purple ink. Violet is spent on what the user can act on. The proof is real: live figures from the database, real screenshots in browser frames, and the Oracle SQL behind every answer. Nothing decorative stands in for evidence.\n\nTwo surfaces share one base layer (`static/css/base.css`): the landing at `/` persuades, and the app at `/app` answers. Both ship light and dark themes in deep purples. A theme toggle on each surface writes the shared localStorage key `tema`, and without a stored choice the theme follows `prefers-color-scheme`. A view transition carries the logo (`view-transition-name: marca-logo`) between the two surfaces. It is turned off under reduced motion.",
+    "keyCharacteristics": [
+      "Lilac-tinted page, cream surfaces, deep-purple ink, violet for actions.",
+      "Geist for the interface and display type, Geist Mono for SQL and headline figures, all self-hosted with no CDN.",
+      "Single panels split by hairline dividers rather than a card per item.",
+      "Real screenshots in browser-frame windows, swapped for the theme.",
+      "Status is always an icon plus a label on a tinted wash, never color alone."
+    ],
+    "rules": [
+      {
+        "name": "The Violet Means Act Rule",
+        "body": "Violet fills belong to things the user can press, focus or select, plus the user's own question bubble. Content, headings and decoration stay in the ink ramp.",
+        "section": "colors"
+      },
+      {
+        "name": "The Fixed Palette Rule",
+        "body": "The brand hexes, s1–s8 and ok/warn/crit are approved and pinned. Don't retune them for a new surface.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never Color Alone Rule",
+        "body": "Every status shows a check, warning or alert SVG in a colored disc, followed by its label (Aceitável / Alerta / Crítico), on the matching wash.",
+        "section": "colors"
+      },
+      {
+        "name": "The Machine Figures Rule",
+        "body": "Headline figures and code are set in Geist Mono with tabular numbers. Every other number in a data context (KPIs, alert values, numeric table columns) uses `font-variant-numeric: tabular-nums`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Wordmark Is Not A Font Rule",
+        "body": "DejaVu Sans/Verdana appears only in \"DataCare_\". Never set it in Geist or use it for anything else.",
+        "section": "typography"
+      },
+      {
+        "name": "The Dividers Not Cards Rule",
+        "body": "A set of peers (KPIs, alerts, the \"why it matters\" blocks, the problem chain, figures, results) lives in one bordered panel split by 1px hairlines. Separate cards are for charts and for the landing's three step demos.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** take every color from the `:root` tokens in base.css, and give each new token a dark-theme override.",
+      "**Do** keep violet for actions, focus and selection.",
+      "**Do** group peer items in one panel with 1px hairline dividers.",
+      "**Do** pair every status color with its SVG icon and its Aceitável / Alerta / Crítico label.",
+      "**Do** show proof with real screenshots in the browser-window frame, in matching light and dark captures.",
+      "**Do** set headline figures and SQL in Geist Mono with tabular numbers.",
+      "**Do** attribute team-reported results to the SQLadies team, stating that this demonstration did not measure them.",
+      "**Do** use prefixed class names (`tab-home`, `n-alerta`, `relev-*`, `aba-*`, `turno-*`).",
+      "**Do** use skeletons shaped like the coming content for loading.",
+      "**Do** share the theme through localStorage key `tema`, and respect `prefers-reduced-motion`."
+    ],
+    "donts": [
+      "**Don't** put colored side stripes on cards or alerts.",
+      "**Don't** use violet for decorative fills, headings or icons that aren't actions.",
+      "**Don't** retune s1–s8, ok/warn/crit or the brand hexes.",
+      "**Don't** show status by color alone.",
+      "**Don't** load fonts, scripts or map data from a CDN; everything ships under `static/vendor`.",
+      "**Don't** use generic class names such as `.home` or `.alerta` for new components.",
+      "**Don't** put staged or edited images in a browser window. The window holds only real captures of the running app."
+    ]
+  }
+}
