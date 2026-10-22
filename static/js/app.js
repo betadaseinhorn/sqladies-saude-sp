@@ -538,7 +538,8 @@
     }
     const charts = el("div", { class: "charts" });
     for (const c of d.charts || []) {
-      const plot = el("div", { class: "plot", role: "img", "aria-label": c.title });
+      const plot = el("div", { class: "plot", role: "img",
+        "aria-label": c.title + (d.insights && d.insights.length ? `. ${d.insights[0]}` : "") });
       charts.append(el("div", { class: "card" + (c.wide ? " wide" : "") },
         el("h4", { text: c.title }), c.subtitle ? el("p", { class: "card-sub", text: c.subtitle }) : null, plot));
       t.charts.push([plot, c]);
@@ -563,14 +564,14 @@
     a.observer = new IntersectionObserver((entradas) => {
       for (const e of entradas) if (e.isIntersecting) marcarTurno(a, e.target.dataset.n);
     }, { rootMargin: "-120px 0px -65% 0px" });
-    a.panel.replaceChildren(a.nav, a.lista);
+    a.panel.replaceChildren(el("h1", { class: "sr-only", text: `DataCare_ · ${a.text}` }), a.nav, a.lista);
   }
 
   function marcarTurno(a, n) {
     a.nav.querySelectorAll(".turno-pill").forEach((b) => {
       if (b.dataset.n === n) {
         b.setAttribute("aria-current", "true");
-        b.scrollIntoView({ block: "nearest", inline: "nearest" });
+        rolarParaVer(a.nav, b);
       } else b.removeAttribute("aria-current");
     });
   }
@@ -682,8 +683,25 @@
     } catch (e) { /* ok */ }
   }
 
-  function ativar(id) {
+  // rola só na horizontal a faixa (abas ou perguntas) até o item ficar visível. scrollIntoView também
+  // rolaria a página por causa do scroll-padding-top e interromperia a rolagem suave em andamento.
+  function rolarParaVer(faixa, item) {
+    const ini = item.offsetLeft - faixa.offsetLeft, fim = ini + item.offsetWidth;
+    if (ini < faixa.scrollLeft) faixa.scrollLeft = ini - 8;
+    else if (fim > faixa.scrollLeft + faixa.clientWidth) faixa.scrollLeft = fim - faixa.clientWidth + 8;
+  }
+
+  // endereço da aba: "/" para a Início, "#pergunta=<texto>" para as demais
+  const hashDe = (id) => (id === "inicio" ? "" : "#pergunta=" + encodeURIComponent(abas.get(id).text));
+
+  function ativar(id, { historico = "push" } = {}) {
     ativa = id;
+    if (historico !== "nenhum") {
+      const url = location.pathname + hashDe(id);
+      if (url !== location.pathname + location.hash || historico === "replace") {
+        history[historico === "replace" ? "replaceState" : "pushState"]({ aba: id }, "", url);
+      }
+    }
     for (const t of tabsEl.querySelectorAll(".tab")) {
       const sel = t.dataset.tab === id;
       t.setAttribute("aria-selected", String(sel));
@@ -691,7 +709,7 @@
     }
     for (const p of panelsEl.children) p.hidden = p.id !== `panel-${id}`;
     const tab = tabsEl.querySelector(`[data-tab="${id}"]`);
-    if (tab) tab.scrollIntoView({ block: "nearest", inline: "nearest" });
+    if (tab) rolarParaVer(tabsEl, tab);
     window.scrollTo(0, 0);
     if (id === "inicio") input.focus();
     else requestAnimationFrame(() => desenharAba(abas.get(id)));
@@ -841,6 +859,17 @@
     enviar(text, pendingId);
   });
   $("#tab-inicio").addEventListener("click", () => ativar("inicio"));
+  // Voltar/Avançar do navegador trocam de aba
+  window.addEventListener("popstate", () => {
+    const texto = perguntaDoHash();
+    if (!texto) return ativar("inicio", { historico: "nenhum" });
+    const a = [...abas.values()].find((x) => x.text === texto);
+    if (a) ativar(a.id, { historico: "nenhum" }); else enviar(texto, null);
+  });
+  function perguntaDoHash() {
+    const m = location.hash.match(/^#pergunta=(.+)$/);
+    try { return m ? decodeURIComponent(m[1]).trim().slice(0, 300) : ""; } catch (e) { return ""; }
+  }
 
   // navegação por teclado entre abas (setas)
   tabsEl.addEventListener("keydown", (e) => {
@@ -867,6 +896,7 @@
   }
 
   async function init() {
+    const doLink = perguntaDoHash(); // lido antes de a restauração das abas reescrever o endereço
     const filtros = carregarFiltros();
     const mapa = carregarMapa();
     try {
@@ -890,10 +920,15 @@
         return novaAba(x.text, x.qid, turnos.filter((t) => t && t.text));
       });
       const alvo = criadas[salvo.ativa];
-      ativar(alvo ? alvo.id : "inicio");
+      ativar(alvo ? alvo.id : "inicio", { historico: "replace" });
       for (const a of criadas) carregar(a);
     } else {
-      ativar("inicio");
+      ativar("inicio", { historico: "replace" });
+    }
+    // link direto para uma pergunta (#pergunta=…): abre a aba dela (ou reativa, se já estiver aberta)
+    if (doLink) {
+      const a = [...abas.values()].find((x) => x.text === doLink);
+      if (a) ativar(a.id, { historico: "replace" }); else enviar(doLink, null);
     }
   }
   init();

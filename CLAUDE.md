@@ -69,6 +69,8 @@ Adding a question touches several places: `CATALOGO`, `FILTROS`, `SEGUINTES` (al
 - A tab is a conversation of `turnos`: a question bubble followed by its dashboard, then a follow-up question box at the end. A sticky "Perguntas: 1 · 2 · 3" nav jumps between turns.
 - Changing a filter rebuilds only that turn's dashboard in place.
 - Tabs and turns (with their params) persist in `localStorage` under `sqladies_abas`.
+- Each tab has its own URL, `#pergunta=<question text>`. `ativar()` pushes it to the browser history, so Back and Forward switch tabs (`popstate`). On load, a `#pergunta=` link opens or reactivates that question's tab.
+- `html` has `scroll-padding-top` set to the height of the sticky tab bar plus the "Perguntas" strip, so focused or scrolled-to items are not hidden. Inside those horizontal strips, use `rolarParaVer()` and never `scrollIntoView`: with the padding, `scrollIntoView` also scrolls the page and cancels the smooth scroll already in progress.
 - The backend sends chart specs as theme-neutral Plotly traces with `colorSlot`, `colorRole` and `scale`. `styleTrace` and `styleLayout` resolve them from the CSS tokens at draw time, so charts redraw when the theme changes.
 - Charts are drawn lazily per tab.
 
