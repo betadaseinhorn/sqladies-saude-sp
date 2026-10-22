@@ -13,11 +13,16 @@
   const feedback = $("#feedback");
   const STORE = "sqladies_abas";
   const NIVEL = {
-    aceitavel: { rotulo: "Aceitável", icone: "✓" },
-    alerta: { rotulo: "Alerta", icone: "!" },
-    critico: { rotulo: "Crítico", icone: "✕" },
+    aceitavel: { rotulo: "Aceitável" },
+    alerta: { rotulo: "Alerta" },
+    critico: { rotulo: "Crítico" },
   };
   const ORDEM_NIVEL = { aceitavel: 0, alerta: 1, critico: 2 };
+  const ICONE_NIVEL = {
+    aceitavel: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    alerta: '<path d="M12 6v7"/><path d="M12 17.5v.5"/>',
+    critico: '<path d="M7 7l10 10M17 7L7 17"/>',
+  };
 
   // id -> {id, text, qid, tab, panel, lista, nav, caixa, drawn, turnos[{text, qid, params, el, dash, charts[], nivel}]}
   const abas = new Map();
@@ -182,6 +187,14 @@
     const T = theme();
     const traces = spec.traces.map((t) => styleTrace(t, T));
     const layout = styleLayout(spec.layout || {}, traces, T, spec.height || 340);
+    // tela estreita: nomes longos no eixo das barras horizontais são encurtados (o nome completo segue no hover)
+    const barrasH = traces.filter((t) => t.type === "bar" && t.orientation === "h");
+    if (barrasH.length && div.clientWidth < 520) {
+      const nomes = [...new Set(barrasH.flatMap((t) => t.y))];
+      layout.yaxis = Object.assign({}, layout.yaxis, { tickmode: "array", tickvals: nomes,
+        ticktext: nomes.map((s) => (String(s).length > 18 ? String(s).slice(0, 17) + "…" : s)),
+        tickfont: Object.assign({}, layout.yaxis.tickfont, { size: 10.5 }) });
+    }
     // topojsonURL: mapa-base do Plotly servido localmente (static/vendor/topojson), para funcionar offline
     Plotly.react(div, traces, layout, { displayModeBar: false, responsive: true, topojsonURL: "/static/vendor/topojson/" });
   }
@@ -231,8 +244,10 @@
   function badge(nivel) {
     const n = NIVEL[nivel];
     if (!n) return el("span", { text: "–" });
-    return el("span", { class: `status-badge st-${nivel}` },
-      el("span", { class: "sico", "aria-hidden": "true", text: n.icone }), n.rotulo);
+    // ícone desenhado (mesmo traço dos demais ícones), no lugar dos caracteres ✓ ! ✕
+    const sico = el("span", { class: "sico", "aria-hidden": "true" });
+    sico.append(svgIcon(ICONE_NIVEL[nivel]));
+    return el("span", { class: `status-badge st-${nivel}` }, sico, n.rotulo);
   }
 
   // -------------------------------------------------------------- exportar ---
@@ -508,18 +523,18 @@
 
     if (d.alertas && d.alertas.length) {
       root.append(el("h3", { class: "section-title" }, "Situação", badge(d.status_geral)));
-      root.append(el("div", { class: "alertas" }, d.alertas.map((al) => el("div", { class: `alerta st-${al.nivel}` },
+      root.append(el("ul", { class: "alertas" }, d.alertas.map((al) => el("li", { class: `alerta st-${al.nivel}` },
         badge(al.nivel),
         el("div", { class: "alerta-ind", text: al.indicador }),
         el("div", { class: "alerta-val", text: al.valor }),
         el("div", { class: "alerta-exp", text: al.explicacao })))));
-      root.append(el("p", { class: "legenda-status",
-        text: "✓ Aceitável · ! Alerta · ✕ Crítico. Limites configuráveis em app/alerts.py." }));
+      root.append(el("p", { class: "legenda-status" }, badge("aceitavel"), badge("alerta"), badge("critico"),
+        el("span", { text: "Limites configuráveis em app/alerts.py." })));
     }
 
     if (d.insights && d.insights.length) {
-      root.append(el("div", { class: "insights" }, el("h3", { text: "O que os dados mostram" }),
-        el("ul", {}, d.insights.map((t) => el("li", { text: t })))));
+      root.append(el("h3", { class: "section-title", text: "O que os dados mostram" }));
+      root.append(el("div", { class: "insights" }, el("ul", {}, d.insights.map((t) => el("li", { text: t })))));
     }
     if (d.relevancia) {
       const r = d.relevancia;
@@ -761,7 +776,9 @@
 
   async function carregar(a, preRes) {
     setStatus(a, "carregando");
-    a.panel.replaceChildren(el("div", { class: "loading" }, el("div", { class: "spinner" }), "Gerando dashboard…"));
+    // esqueleto no formato do dashboard, no lugar do spinner
+    a.panel.replaceChildren(el("div", { class: "esqueleto", role: "status", "aria-label": "Gerando dashboard…" },
+      ["e-balao", "e-titulo", "e-sub", "e-kpis", "e-graf"].map((c) => el("i", { class: c, "aria-hidden": "true" }))));
     const pend = a.pendentes;
     try {
       const res = preRes || await perguntar(pend[0].text, pend[0].qid, pend[0].params);
@@ -903,7 +920,7 @@
       const qs = await fetch("/api/questions").then((r) => r.json());
       const cat = $("#catalogo");
       for (const c of qs.categorias) {
-        cat.append(el("div", { class: "cat" }, el("h3", { text: c.nome }),
+        cat.append(el("div", { class: "cat" }, el("h2", { text: c.nome }),
           el("div", { class: "chips" }, c.perguntas.map(chip))));
       }
     } catch (e) {

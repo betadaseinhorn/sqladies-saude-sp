@@ -85,6 +85,12 @@ Adding a question touches several places: `CATALOGO`, `FILTROS`, `SEGUINTES` (al
 - Use prefixed class names (`tab-home`, `n-alerta`, `relev-*`, `aba-*`, `turno-*`). Generic names such as `.home` and `.alerta` already collided with existing components.
 - `body` uses `min-height` rather than a fixed `height`, so the sticky tab bar stays visible on long pages.
 - Printing uses `body.modo-impressao` together with `.turno.imprimir`.
+- The front was refined with the Impeccable skill (`polish`, Operate mode). Its detector reports 0 findings; keep it that way with `~/.claude/skills/impeccable/scripts/impeccable detect --json static/ http://localhost:8000/`.
+  - Do not use colored side borders on cards.
+  - Status icons are SVG (`ICONE_NIVEL`), never ✓/!/✕ characters.
+  - KPIs, alerts and the "Por que essa pergunta importa" section are single panels with dividers, not one card per item.
+  - Shape tokens: `--r-*`, `--fs-*`, `--dur`, `--ease`.
+  - Loading is a skeleton (`.esqueleto`), not a spinner.
 
 ## Testing notes
 
