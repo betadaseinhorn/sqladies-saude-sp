@@ -51,12 +51,13 @@
       <div class="hero-texto">
         <h1 id="hero-titulo">Pergunte em português.<br>Receba o dashboard.</h1>
         <p class="hero-sub">O DataCare_ transforma dados públicos do SUS em respostas para a gestão hospitalar: internações, leitos e sazonalidade dos 645 municípios de São Paulo, com alertas e ações sugeridas.</p>
-        <form class="pergunta" id="pergunta-form" action="/app" autocomplete="off">
+        <form class="pergunta" id="pergunta-form" action="/app" autocomplete="off" novalidate>
           <label class="sr-only" for="pergunta-campo">Sua pergunta</label>
-          <input id="pergunta-campo" name="pergunta" type="text" maxlength="300" placeholder="Quais hospitais estão mais lotados?" required>
+          <input id="pergunta-campo" name="pergunta" type="text" maxlength="300" placeholder="Quais hospitais estão mais lotados?">
           <button class="btn btn-primario" type="submit">Perguntar
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
         </form>
+        <p class="dica"><kbd>Enter</kbd> abre o dashboard da pergunta em <span>/app</span></p>
         <ul class="exemplos" aria-label="Exemplos de perguntas">
           <li><a href="/app#pergunta=Qual%20o%20panorama%20geral%20das%20interna%C3%A7%C3%B5es%20SUS%20no%20estado%3F">Panorama do estado</a></li>
           <li><a href="/app#pergunta=Como%20a%20sazonalidade%20das%20doen%C3%A7as%20respirat%C3%B3rias%20varia%20entre%20as%20DRS%3F">Sazonalidade das respiratórias</a></li>
@@ -64,9 +65,9 @@
         </ul>
       </div>
       <figure class="janela hero-tela">
-        <div class="janela-barra" aria-hidden="true"><i></i><i></i><i></i><span>datacare / app</span></div>
-        <img class="so-claro" src="/static/marca/app-claro.webp" width="2080" height="1440" alt="Dashboard do DataCare_ respondendo &quot;Quais hospitais têm a maior ocupação estimada de leitos?&quot;: 56 de 437 hospitais acima de 85% e situação crítica">
-        <img class="so-escuro" src="/static/marca/app-escuro.webp" width="2080" height="1440" alt="" aria-hidden="true">
+        <div class="janela-barra" aria-hidden="true"><i></i><i></i><i></i><span>localhost:8000/app</span></div>
+        <img class="so-claro" src="/static/marca/app-claro.webp" width="1242" height="1053" alt="Dashboard do DataCare_ respondendo &quot;Quais hospitais têm a maior ocupação estimada de leitos?&quot;: 56 de 437 hospitais acima de 85% e situação crítica">
+        <img class="so-escuro" src="/static/marca/app-escuro.webp" width="1242" height="1053" alt="" aria-hidden="true">
       </figure>
     </section>
 
@@ -84,21 +85,13 @@
     <section class="secao" id="problema" aria-labelledby="problema-titulo">
       <div class="secao-cab">
         <h2 id="problema-titulo">Os dados existem.<br>A decisão chega tarde.</h2>
-        <p>A gestão hospitalar pública opera sob alta pressão: a demanda por leitos cresce e os recursos são escassos. DATASUS, SIH/SUS e CNES publicam um grande volume de dados, mas eles estão fragmentados, descentralizados e dependem de tratamento manual complexo. O resultado é uma gestão que reage em vez de planejar.</p>
+        <p>A gestão hospitalar pública opera sob alta pressão: a demanda por leitos cresce e os recursos são escassos. DATASUS, SIH/SUS e CNES publicam um grande volume de dados, mas eles estão fragmentados, descentralizados e dependem de tratamento manual complexo. O resultado é uma gestão que reage em vez de planejar, e o envelhecimento da população e o cenário pós-pandemia tornam esse modelo insustentável.</p>
       </div>
       <ol class="cadeia" aria-label="Consequências">
         <li><strong>Gargalos e superlotação</strong><span>Leitos no limite e filas que só aparecem quando já são crise.</span></li>
         <li><strong>Desperdício de recursos públicos</strong><span>Verba aplicada sem enxergar onde a demanda realmente está.</span></li>
         <li><strong>Esforço humano desperdiçado</strong><span>Equipes montando relatórios à mão em vez de decidir.</span></li>
       </ol>
-      <div class="agora">
-        <h3>Por que resolver agora</h3>
-        <dl>
-          <div><dt>Pressão crescente</dt><dd>O envelhecimento da população e o cenário pós-pandemia tornam insustentável a gestão de "apagar incêndios".</dd></div>
-          <div><dt>Oportunidade tecnológica</dt><dd>Bancos de dados autônomos, IA que traduz linguagem natural em SQL e machine learning permitem tratar esses dados com segurança.</dd></div>
-          <div><dt>Custo da demora</dt><dd>Adiar a modernização perpetua o desperdício de verbas públicas e mantém cidadãos à espera de atendimento adequado.</dd></div>
-        </dl>
-      </div>
     </section>
 
     <!-- ---------------------------------------------------- como funciona -->
@@ -144,8 +137,9 @@
       </div>
       <div class="recursos">
         <figure class="janela recursos-tela">
-          <img class="so-claro" src="/static/marca/mapa-claro.webp" width="1544" height="1016" loading="lazy" alt="Mapa dos 645 municípios de São Paulo coloridos pelos três grupos de perfil de demanda encontrados pelo K-means">
-          <img class="so-escuro" src="/static/marca/mapa-escuro.webp" width="1544" height="1016" loading="lazy" alt="" aria-hidden="true">
+          <div class="janela-barra" aria-hidden="true"><i></i><i></i><i></i><span>Onde ficam os grupos · K-means</span></div>
+          <img class="so-claro" src="/static/marca/mapa-claro.webp" width="1001" height="602" loading="lazy" alt="Mapa dos 645 municípios de São Paulo coloridos pelos três grupos de perfil de demanda encontrados pelo K-means">
+          <img class="so-escuro" src="/static/marca/mapa-escuro.webp" width="1001" height="602" loading="lazy" alt="" aria-hidden="true">
         </figure>
         <ul class="recursos-lista">
           <li><a href="/app#pergunta=Como%20as%20interna%C3%A7%C3%B5es%20variam%20ao%20longo%20dos%20meses%3F"><strong>Sazonalidade</strong><span>Meses de pico por região e por causa, com decomposição da tendência.</span></a></li>
@@ -196,8 +190,8 @@
         <p>Números do projeto entregue à Oracle, relatados pela equipe SQLadies. Não são medições desta demonstração.</p>
       </div>
       <dl class="resultados">
-        <div><dd>−85%</dd><dt>no tempo de decisão em situações de crise</dt></div>
-        <div><dd>−70%</dd><dt>na dependência de TI para gerar relatórios</dt></div>
+        <div><dt>no tempo de decisão em situações de crise</dt><dd>−85%</dd></div>
+        <div><dt>na dependência de TI para gerar relatórios</dt><dd>−70%</dd></div>
       </dl>
       <div class="proximos">
         <h3>Próximos passos</h3>

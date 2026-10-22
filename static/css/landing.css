@@ -2,6 +2,7 @@
    Landing page (/). Tokens, fontes e marca vêm de base.css. */
 
 html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+@media (max-width: 1080px) { html { scroll-padding-top: 120px; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { display: block; font-size: 16px; }
 p, dd, li { text-wrap: pretty; }
@@ -52,8 +53,8 @@ svg { flex: none; }
 }
 
 /* ------------------------------------------------------------------ hero --- */
-.hero { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: 56px; align-items: center; padding: 72px 0 56px; }
-.hero h1 { margin: 0; font-size: clamp(36px, 3.8vw, 54px); line-height: 1.02; font-weight: 650; letter-spacing: -0.04em; text-wrap: balance; }
+.hero { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 1fr); gap: 56px; align-items: center; padding: 72px 0 56px; }
+.hero h1 { margin: 0; font-size: clamp(36px, 3.7vw, 54px); line-height: 1.02; font-weight: 650; letter-spacing: -0.04em; text-wrap: balance; }
 .hero-sub { margin: 20px 0 28px; font-size: 18px; line-height: 1.55; color: var(--text-2); max-width: 46ch; text-wrap: pretty; }
 .pergunta { display: flex; gap: 8px; padding: 6px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
   box-shadow: var(--shadow); }
@@ -74,14 +75,19 @@ svg { flex: none; }
 .janela-barra { height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 12px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
 .janela-barra i { width: 9px; height: 9px; border-radius: 50%; background: var(--axis); }
 .janela-barra span { margin-left: 10px; font: 500 12px var(--mono); color: var(--muted); }
-.hero-tela { transform: translateX(0); }
+/* a captura do app sangra até a borda direita da janela do navegador */
+.hero-tela { margin-right: min(0px, calc((1200px - 100vw) / 2)); border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: 0; }
+.dica { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.dica kbd { font: 500 12px var(--mono); padding: 1px 6px; border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px;
+  background: var(--surface); color: var(--text-2); }
+.dica span { font-family: var(--mono); font-size: 12px; }
 
 /* --------------------------------------------------------------- números --- */
 .numeros { padding: 8px 0 24px; }
 .numeros dl { margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-block: 1px solid var(--border); }
 .numeros dl > div { padding: 22px 24px; display: flex; flex-direction: column-reverse; gap: 4px; }
 .numeros dl > div + div { border-left: 1px solid var(--border); }
-.numeros dd { margin: 0; font-size: 36px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.numeros dd { margin: 0; font: 600 40px/1.1 var(--mono); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .numeros dt { font-size: 14px; color: var(--text-2); }
 .numeros-nota { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
 
@@ -101,11 +107,6 @@ svg { flex: none; }
   border-top: 1px solid var(--border); border-right: 1px solid var(--border); background: var(--surface); transform: rotate(45deg); }
 .cadeia strong { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 .cadeia span { font-size: 15px; color: var(--text-2); line-height: 1.5; }
-.agora { margin-top: 56px; }
-.agora dl { margin: 16px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
-.agora dl > div { border-top: 1px solid var(--text); padding-top: 14px; }
-.agora dt { font-weight: 600; margin-bottom: 6px; }
-.agora dd { margin: 0; font-size: 15px; line-height: 1.55; color: var(--text-2); }
 
 /* como funciona: três passos com visual real */
 .passos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; counter-reset: passo; }
@@ -126,10 +127,11 @@ svg { flex: none; }
 .selo.st-alerta { background: var(--warn-wash); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 55%, transparent); }
 .selo.st-aceitavel { background: var(--ok-wash); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 45%, transparent); }
 .honesto { max-width: 66ch; margin: 20px 0 0; padding: 16px 20px; border-radius: 12px; background: var(--accent-wash); color: var(--text); font-size: 15px; line-height: 1.55; }
-.honesto strong { color: var(--accent-ink); }
+.honesto strong { color: var(--text); }
 
 /* recursos */
 .recursos { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 40px; align-items: start; }
+.recursos-tela { position: sticky; top: 96px; }
 .recursos-lista { list-style: none; margin: 0; padding: 0; }
 .recursos-lista li + li { border-top: 1px solid var(--border); }
 .recursos-lista a { display: grid; gap: 4px; padding: 16px 32px 16px 0; text-decoration: none; position: relative; }
@@ -150,14 +152,15 @@ svg { flex: none; }
 .fontes td { color: var(--text-2); }
 .governanca h3 + p { margin: 0 0 24px; font-size: 15px; line-height: 1.55; color: var(--text-2); }
 .chips-tec { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.chips-tec li { padding: 5px 10px; border-radius: 6px; font: 500 13px var(--font); background: var(--accent-wash); color: var(--accent-ink); }
-.chips-tec-sec li { background: var(--surface-2); color: var(--text-2); }
+.chips-tec li { padding: 5px 10px; border-radius: 6px; font: 500 13px var(--font); background: var(--surface-2); color: var(--text-2);
+  box-shadow: inset 0 0 0 1px var(--border); }
+.chips-tec-sec li { box-shadow: none; }
 
 /* resultados */
 .resultados { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-block: 1px solid var(--border); }
 .resultados > div { padding: 32px 0; display: flex; flex-direction: column-reverse; gap: 6px; }
 .resultados > div + div { border-left: 1px solid var(--border); padding-left: 40px; }
-.resultados dd { margin: 0; font-size: clamp(56px, 7vw, 96px); line-height: 1; font-weight: 650; letter-spacing: -0.05em; color: var(--marca-data);
+.resultados dd { margin: 0; font: 600 clamp(36px, 4vw, 48px)/1 var(--mono); letter-spacing: -0.02em; color: var(--text);
   font-variant-numeric: tabular-nums; }
 .resultados dt { font-size: 17px; color: var(--text-2); }
 .proximos { margin-top: 40px; }
@@ -187,8 +190,13 @@ svg { flex: none; }
 
 /* -------------------------------------------------------------- responsivo --- */
 @media (max-width: 1080px) {
-  .topo-nav { display: none; }
-  .topo-acoes { margin-left: auto; }
+  .topo-in { flex-wrap: wrap; height: auto; min-height: 64px; row-gap: 0; }
+  .topo-nav { order: 3; width: 100%; margin: 0 -8px; padding: 0 0 8px; overflow-x: auto; scrollbar-width: none; }
+  .topo-nav::-webkit-scrollbar { display: none; }
+  .topo-nav a { flex: none; }
+  .topo-acoes { margin-left: auto; min-height: 64px; }
+  .hero-tela { margin-right: 0; border-radius: 12px; border-right: 1px solid var(--border); }
+  .recursos-tela { position: static; }
   .hero, .secao-cab, .recursos, .dados, .final { grid-template-columns: 1fr; }
   .hero { gap: 40px; padding-top: 48px; }
   .secao-cab { gap: 16px; }
@@ -201,12 +209,12 @@ svg { flex: none; }
   .numeros dl > div:nth-child(3) { border-left: 0; }
   .numeros dl > div:nth-child(n+3) { border-top: 1px solid var(--border); }
   .numeros dl > div { padding: 18px 16px; }
-  .numeros dd { font-size: 28px; }
+  .numeros dd { font-size: 30px; }
   .secao { padding-top: 80px; }
-  .cadeia, .passos, .agora dl, .proximos ol { grid-template-columns: 1fr; }
+  .cadeia, .passos, .proximos ol { grid-template-columns: 1fr; }
   .cadeia li + li { border-left: 0; border-top: 1px solid var(--border); }
   .cadeia li + li::before { left: 50%; top: -7px; margin: 0 0 0 -6px; transform: rotate(135deg); }
-  .agora dl, .proximos ol { gap: 20px; }
+  .proximos ol { gap: 20px; }
   .resultados { grid-template-columns: 1fr; }
   .resultados > div + div { border-left: 0; padding-left: 0; border-top: 1px solid var(--border); }
   .pergunta { flex-direction: column; }

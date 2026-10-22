@@ -290,5 +290,5 @@ def test_rotas_landing_e_aplicacao():
     assert "landing.css" in r.text and "plotly" not in r.text  # landing leve, sem Plotly
     d = client.get("/api/resumo").json()
     assert d["municipios"] == 645 and d["internacoes"] > 5_000_000 and d["analises"] == len(CATALOGO)
-    for f in ("static/marca/app-claro.webp", "static/marca/mapa-claro.webp", "static/vendor/fonts/Geist-Variable.woff2"):
+    for f in ("static/marca/app-claro.webp", "static/marca/mapa-claro.webp", "static/marca/app-escuro.webp", "static/vendor/fonts/Geist-Variable.woff2"):
         assert client.get("/" + f).status_code == 200
