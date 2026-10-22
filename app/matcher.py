@@ -61,11 +61,15 @@ class Match:
 
 
 @lru_cache(maxsize=1)
-def _mun_index() -> list[tuple[str, int, str]]:
+def _mun_regex() -> tuple[re.Pattern, dict[str, int]]:
+    """Uma regex com todos os municípios (nomes mais longos primeiro) e o mapa nome → código.
+
+    Compilar 645 padrões a cada pergunta estourava o cache do módulo `re` (~16 ms por pergunta).
+    """
     m = db.municipios()
-    idx = [(norm(n), int(c), n) for c, n in zip(m["cod_mun"], m["nome"])]
-    idx = [t for t in idx if t[0] not in IGNORAR_MUN]
-    return sorted(idx, key=lambda t: -len(t[0]))  # nomes mais longos primeiro
+    cods = {norm(n): int(c) for c, n in zip(m["cod_mun"], m["nome"])}
+    nomes = sorted((n for n in cods if n not in IGNORAR_MUN), key=len, reverse=True)
+    return re.compile(r"\b(" + "|".join(map(re.escape, nomes)) + r")\b"), cods
 
 
 @lru_cache(maxsize=1)
@@ -103,16 +107,11 @@ def extrair(texto: str) -> tuple[dict, str]:
 
     # Municípios (ordem de aparição no texto)
     t_sem_estado = re.sub(r"estado de sao paulo|estado de sp|\bsp\b", " ", t)
-    achados = []
-    for nome_n, cod, _ in _mun_index():
-        for mm in re.finditer(rf"\b{re.escape(nome_n)}\b", t_sem_estado):
-            achados.append((mm.start(), cod, nome_n))
-            t_sem_estado = (t_sem_estado[:mm.start()] + " " * len(nome_n)
-                            + t_sem_estado[mm.end():])
+    padrao, cods = _mun_regex()
+    achados = [(mm.group(1), cods[mm.group(1)]) for mm in padrao.finditer(t_sem_estado)]
     if achados:
-        achados.sort()
-        params["municipios"] = list(dict.fromkeys(c for _, c, _ in achados))
-        for _, _, nome_n in achados:
+        params["municipios"] = list(dict.fromkeys(c for _, c in achados))
+        for nome_n, _ in achados:
             t = t.replace(nome_n, " ", 1)
 
     anos = [int(a) for a in re.findall(r"\b(20\d\d)\b", t) if int(a) in db.anos()]

@@ -256,3 +256,26 @@ def test_dashboards_com_mapa(qid, params):
     if params.get("drs") and "drs" in FILTROS_Q[qid]:  # grupos (K-means) não filtra por DRS
         regiao = set(db.municipios().query("drs_num == 6")["cod_mun"].astype(int))
         assert all(set(t["locations"]) <= regiao for t in mapas)
+
+
+# ------------------------------------------------------------ desempenho ---
+def test_cache_de_dashboards():
+    a = dashboards.build("visao_geral", {"ano": 2025}, "pergunta um")
+    a["title"] = "alterado"  # alterar a resposta não pode contaminar o cache
+    b = dashboards.build("visao_geral", {"ano": 2025}, "pergunta dois")
+    assert b["title"] != "alterado"
+    assert any("pergunta dois" in x["sql"] for x in b["sql"])  # a query acompanha o texto
+    assert dashboards.build("visao_geral", {"ano": 2024})["kpis"] != b["kpis"]  # filtros diferentes, cache diferente
+
+
+def test_extrai_municipios_compostos_e_ordem():
+    p, _ = extrair("hospitais de sao jose do rio preto e sao jose dos campos")
+    assert p["municipios"] == [354980, 354990]
+    p, _ = extrair("compare guarujá e santos")
+    assert p["municipios"] == [351870, 354850]
+
+
+def test_gzip_e_cache_do_vendor():
+    r = client.get("/static/vendor/plotly.min.js", headers={"Accept-Encoding": "gzip"})
+    assert r.headers["content-encoding"] == "gzip" and "max-age" in r.headers["cache-control"]
+    assert "max-age" not in client.get("/static/js/app.js").headers.get("cache-control", "")

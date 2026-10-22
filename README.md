@@ -34,6 +34,10 @@ uvicorn app.main:app              # abra http://localhost:8000
 
 Depois do pipeline, o app não usa a internet: o Plotly está em `static/vendor/` e as fontes são do sistema.
 
+Desempenho: como o banco é somente leitura, cada dashboard (pergunta + filtros) fica em cache. Ao subir, o servidor
+pré-monta em segundo plano as 18 perguntas do catálogo. As respostas e os arquivos estáticos saem compactados (gzip).
+Depois de refazer o banco com o `pipeline.py`, reinicie o servidor.
+
 ## Rodar em outro PC
 
 O banco `data/sqladies.db` (1,2 GB) não fica no git. Há três formas de tê-lo num PC novo:

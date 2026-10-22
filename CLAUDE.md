@@ -60,7 +60,9 @@ Adding a question touches several places: `CATALOGO`, `FILTROS`, `SEGUINTES` (al
 **Cross-cutting rules**:
 - `alerts.py`: `REGRAS` holds the Aceitável/Alerta/Crítico thresholds. `classificar()` returns a `chave` that `relevancia.ACOES_ALERTA` maps to recommended actions. The municipal hospitalization rate (`taxa`) is compared with the **median** of municipalities with 5k+ inhabitants, not the state mean.
 - `sql_oracle.py` produces the Oracle-dialect query shown under each dashboard. Filter values enter only as validated literals. The user's free text appears only as a one-line comment. Tests parse every query with sqlglot's Oracle dialect.
-- `db.py` opens SQLite read-only. `db.*` lookups and `alerts.referencias()` are `lru_cache`d, so restart the server after rebuilding the DB. On Windows, an orphaned `uvicorn --reload` worker keeps `sqladies.db` locked.
+- `db.py` opens SQLite read-only. `db.*` lookups, `alerts.referencias()` and `dashboards._montar` (the dashboard for a question and its params, everything except `sql`) are `lru_cache`d, so restart the server after rebuilding the DB. Callers must not mutate what `_montar` returns: `build()` returns a shallow copy with a fresh `sql`. At startup, `main.lifespan` warms the cache for the 18 catalog questions in a background thread. On Windows, an orphaned `uvicorn --reload` worker keeps `sqladies.db` locked.
+- `main.py` enables gzip for every response. Files under `/static/vendor/` are sent with `Cache-Control: max-age=86400`; `app.js` and `style.css` are not cached.
+- `matcher._mun_regex()` is a single compiled alternation over the 645 municipality names, longest first. Do not loop over per-name regexes: that overflows `re`'s cache and costs about 16 ms per question.
 
 **Front-end** (`static/js/app.js`, one IIFE, no framework; Plotly is vendored in `static/vendor/plotly.min.js`):
 - The "Início" tab cannot be closed. Each question opens a tab.

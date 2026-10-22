@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import logging
 import math
+import threading
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -20,10 +23,37 @@ from app.matcher import match, validar_params
 from app.questions import CATALOGO, CATEGORIAS, POR_ID, filtros_aceitos
 
 STATIC = Path(__file__).resolve().parents[1] / "static"
+VENDOR = (STATIC / "vendor").resolve()
 log = logging.getLogger("sqladies")
 
-app = FastAPI(title="SQLadies · Saúde SP", docs_url="/api/docs")
-app.mount("/static", StaticFiles(directory=STATIC), name="static")
+def _aquecer() -> None:
+    """Monta em segundo plano os dashboards do catálogo (ficam no cache de dashboards.build)."""
+    for q in CATALOGO:
+        try:  # mesmos filtros de um clique na sugestão (texto do catálogo + parâmetros-exemplo)
+            dashboards.build(q.id, match(q.texto, q.id).params)
+        except Exception:  # noqa: BLE001 - aquecimento é só otimização
+            log.exception("aquecimento: %s", q.id)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    threading.Thread(target=_aquecer, name="aquecer-dashboards", daemon=True).start()
+    yield
+
+
+class StaticVendor(StaticFiles):
+    """Arquivos estáticos; os de vendor/ (Plotly, malha, topojson) não mudam e ficam em cache por 1 dia."""
+
+    def file_response(self, full_path, stat_result, scope, status_code=200):
+        resp = super().file_response(full_path, stat_result, scope, status_code)
+        if Path(full_path).resolve().is_relative_to(VENDOR):
+            resp.headers["Cache-Control"] = "public, max-age=86400"
+        return resp
+
+
+app = FastAPI(title="SQLadies · Saúde SP", docs_url="/api/docs", lifespan=lifespan)
+app.add_middleware(GZipMiddleware, minimum_size=1024)
+app.mount("/static", StaticVendor(directory=STATIC), name="static")
 
 
 class Pergunta(BaseModel):

@@ -7,10 +7,16 @@ Cada builder recebe os parâmetros extraídos pelo matcher e devolve um dicioná
 Os gráficos vão como traces do Plotly sem cores: o front-end aplica o tema e a
 paleta (claro/escuro). `colorSlot` = posição na paleta categórica;
 `colorRole` = "muted" para contexto; heatmaps usam `scale` = diverging|sequential.
+
+`build()` guarda o resultado em cache por (pergunta, filtros): o banco é somente leitura,
+então o mesmo pedido sempre gera o mesmo dashboard. Depois de refazer o banco, reinicie o
+servidor (vale também para os caches de app/db.py e alerts.referencias()).
 """
 from __future__ import annotations
 
+import json
 import math
+from functools import lru_cache
 from typing import Callable
 
 import numpy as np
@@ -1331,13 +1337,19 @@ BUILDERS: dict[str, Callable[[dict], dict]] = {
 }
 
 
-def build(question_id: str, params: dict, pergunta: str | None = None) -> dict:
-    out = BUILDERS[question_id](params)
+@lru_cache(maxsize=256)
+def _montar(question_id: str, chave: str) -> dict:
+    """Dashboard sem a query (que depende do texto da pergunta). Fica em cache: não alterar."""
+    out = BUILDERS[question_id](json.loads(chave))
     out.setdefault("alertas", [])
     out["status_geral"] = A.pior(out["alertas"])
     out["relevancia"] = R.secao(question_id, out["alertas"])
-    out["sql"] = oracle_sql(question_id, params, pergunta)
     out["seguintes"] = [{"id": i, "texto": POR_ID[i].texto} for i in SEGUINTES[question_id]]
     out.setdefault("nota", "")
     out.setdefault("tables", [])
     return out
+
+
+def build(question_id: str, params: dict, pergunta: str | None = None) -> dict:
+    chave = json.dumps(params, sort_keys=True, ensure_ascii=False)
+    return {**_montar(question_id, chave), "sql": oracle_sql(question_id, params, pergunta)}
