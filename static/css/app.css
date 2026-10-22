@@ -48,18 +48,19 @@ html { height: 100%; scroll-padding-top: calc(var(--tabbar-h) + 56px); }
 .panel[hidden] { display: none; }
 .panel { padding: 24px var(--gutter) 48px; }
 
-/* Início: área de trabalho (pergunta à esquerda, atalhos à direita, catálogo em colunas embaixo) */
+/* Início: caixa de pergunta centralizada no meio; atalhos lado a lado e catálogo em colunas embaixo */
 .home-panel { min-height: calc(100vh - var(--tabbar-h)); min-height: calc(100dvh - var(--tabbar-h)); }
 .home { width: 100%; max-width: var(--wide); margin: 0 auto; padding: clamp(24px, 6vh, 72px) 0 24px;
-  display: grid; grid-template-columns: minmax(0, 8fr) minmax(260px, 4fr); gap: 40px clamp(32px, 4vw, 72px); align-items: start; }
-.home-principal { min-width: 0; }
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; align-items: start; }
+.home-principal { min-width: 0; width: 100%; max-width: 820px; margin-inline: auto; text-align: center; }
+.home-principal .feedback { text-align: left; }
 .home-principal h1 { margin: 6px 0 20px; font-size: clamp(26px, 2.6vw, 36px); letter-spacing: -0.03em; line-height: 1.15; font-weight: 650; text-wrap: balance; }
-.home-lado { display: grid; gap: 24px; min-width: 0; padding-top: 4px; }
+.home-lado { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px clamp(24px, 3vw, 48px); min-width: 0; align-items: start; }
 .home-lado h2 { margin: 0 0 10px; font-size: var(--fs-sm); color: var(--text-2); font-weight: 650; }
 .continuar .chips { flex-direction: column; align-items: stretch; }
 .continuar .chip { text-align: left; border-radius: var(--r-sm); }
 .sobre-dados { padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); }
-.sobre-dados dl { margin: 0; display: grid; gap: 10px; }
+.sobre-dados dl { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px 24px; }
 .sobre-dados dt { font-size: var(--fs-xs); color: var(--muted); }
 .sobre-dados dd { margin: 0; font-size: var(--fs-md); font-weight: 550; }
 .sobre-link { display: inline-block; margin-top: 14px; font-size: var(--fs-sm); color: var(--accent-ink); text-decoration: none; font-weight: 550; }
@@ -277,9 +278,6 @@ pre.sql .com { color: var(--code-com); font-style: italic; }
 .erro { color: var(--crit); }
 
 /* ------------------------------------------------------------ responsivo --- */
-@media (max-width: 1080px) {
-  .home { grid-template-columns: 1fr; }
-}
 @media (max-width: 960px) {
   .charts, .relev { grid-template-columns: 1fr; }
   .relev-bloco { box-shadow: 0 -1px 0 var(--border); }

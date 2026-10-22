@@ -103,8 +103,8 @@ Adding a question touches several places: `CATALOGO`, `FILTROS`, `SEGUINTES` (al
   - Shape tokens: `--r-*`, `--fs-*`, `--dur`, `--ease`.
   - Layout tokens: `--gutter` (fluid margin), `--wide` (1600px content limit) and `--measure` (68ch).
   - Pages use the width of the screen; avoid fixed narrow centered columns. On the landing, blocks are padded with `--pad-x`.
-  - The app's Início is a grid: the question box in the main column, side panels, and the catalog in category columns.
-  - Only "Fazer outra pergunta" stays centered, as the user asked.
+  - The app's Início has the question box centered in the middle, the side panels below it, and the catalog in category columns.
+  - Only the Início question box and "Fazer outra pergunta" stay centered, as the user asked.
   - Loading is a skeleton (`.esqueleto`), not a spinner.
 
 ## Testing notes
