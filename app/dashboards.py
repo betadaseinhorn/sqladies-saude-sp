@@ -642,8 +642,8 @@ def ranking_municipios(p: dict) -> dict:
     insights = [
         f"{top.iloc[0]['nome']} lidera com {fmt_dec(top.iloc[0]['taxa'], 1)} internações por 1.000 hab./ano, "
         f"{fmt_dec(top.iloc[0]['taxa'] / taxa_est, 1)}× a média {ref}.",
-        f"A taxa considera o município de residência do paciente, ou seja, mede a demanda da população, "
-        f"não onde a internação aconteceu.",
+        "A taxa considera o município de residência do paciente, ou seja, mede a demanda da população, "
+        "não onde a internação aconteceu.",
         f"Mediana entre municípios com {fmt_int(min_pop)}+ hab.: {fmt_dec(elig['taxa'].median(), 1)} por 1.000.",
     ]
     elig = _status_col(elig, "taxa", "taxa")

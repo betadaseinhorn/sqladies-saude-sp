@@ -59,7 +59,7 @@ def _table(rep: bytes) -> list[tuple[int, int]]:
 
     size = 1 << _MAXBITS
     table: list[tuple[int, int]] = [(-1, 0)] * size
-    code = first = index = 0
+    first = index = 0
     for ln in range(1, _MAXBITS + 1):
         cnt = count[ln]
         for k in range(cnt):

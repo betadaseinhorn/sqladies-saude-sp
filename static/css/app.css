@@ -32,7 +32,7 @@ html { height: 100%; scroll-padding-top: calc(var(--tabbar-h) + 56px); }
 .tabs.mais-esq { mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent); }
 .tabs.mais-esq.mais-dir { mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent); }
 .tab { position: relative; display: flex; align-items: center; gap: 9px; height: 46px; padding: 0 14px;
-  min-width: 0; max-width: 248px; flex: 0 1 auto; border: 0; border-radius: 16px 16px 0 0; background: transparent;
+  min-width: 0; max-width: 248px; flex: 0 1 auto; border: 0; border-radius: var(--r-lg) var(--r-lg) 0 0; background: transparent;
   color: var(--text-2); cursor: pointer; font-size: var(--fs-base); font-weight: 500; white-space: nowrap;
   transition: background-color 150ms var(--ease), color 150ms var(--ease); }
 .tab.tab-home { flex: 0 0 auto; }
@@ -436,7 +436,7 @@ details.tbl[open]::details-content { block-size: auto; opacity: 1; }
   .tab { padding: 0 10px; }
   .tab { max-width: 170px; }
   .home { padding-top: 3vh; }
-  .turno, .aba-pergunta, .erro-box, .esqueleto { padding: 16px; border-radius: 16px; }
+  .turno, .aba-pergunta, .erro-box, .esqueleto { padding: 16px; border-radius: var(--r-lg); }
   .composer { padding: 8px 8px 8px 14px; border-radius: 18px; }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi { box-shadow: -1px 0 0 var(--border), 0 -1px 0 var(--border); }

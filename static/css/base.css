@@ -35,13 +35,12 @@
   --ok: #0ca30c; --warn: #fab219; --crit: #d03b3b;
   --ok-wash: #e9f6e9; --warn-wash: #fef5e0; --crit-wash: #fbeaea;
 
-  --radius: 14px;
   /* escala de forma e movimento (cores ficam acima, intocadas) */
   --r-sm: 8px; --r-md: 12px; --r-lg: 16px;
   --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-base: 15px; --fs-lg: 16px; --fs-xl: 22px;
   --dur: 160ms; --ease: cubic-bezier(.2, .8, .2, 1);
-  /* movimento: ease-out forte para entrar/sair, ease-in-out para o que se move na tela */
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1); --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  /* movimento: ease-out forte para entrar e sair */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   /* layout: margem fluida, largura máxima de conteúdo e medida de leitura */
   --gutter: clamp(16px, 4vw, 64px); --wide: 1600px; --measure: 68ch;
   /* brilho da marca atrás da área da pergunta (mais forte no tema escuro) */
@@ -108,8 +107,6 @@ button, .chip, .tab, .turno-pill, select { transition: background-color var(--du
 button:not(:disabled):not(.tab):active, .chip:active { transform: scale(.96); }
 .ico { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
-.marca-ico { width: 28px; height: 28px; display: block; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2;
-  stroke-linecap: round; stroke-linejoin: round; }
 /* logo-texto DataCare_: "Data" e "_" em violeta, "Care" em roxo profundo (claro em tema escuro) */
 .marca-texto { font-family: var(--font-marca); font-weight: 700; letter-spacing: -0.02em; line-height: 1; white-space: nowrap; }
 .marca-texto .m-data, .marca-texto .m-u { color: var(--marca-data); }

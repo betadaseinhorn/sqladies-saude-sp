@@ -139,10 +139,6 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
   background: var(--code-bg); overflow-x: auto; white-space: pre; }
 .pv-sql .kw { color: var(--code-kw); font-weight: 600; } .pv-sql .fn { color: var(--code-fn); } .pv-sql .str { color: var(--code-str); }
 .como-tela { position: sticky; top: 96px; }
-.selo { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; color: var(--text); }
-.selo.st-critico { background: var(--crit-wash); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--crit) 45%, transparent); }
-.selo.st-alerta { background: var(--warn-wash); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 55%, transparent); }
-.selo.st-aceitavel { background: var(--ok-wash); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 45%, transparent); }
 .honesto { max-width: 60ch; margin: 40px 0 0; padding: 16px 20px; border-radius: 12px; background: var(--accent-wash); color: var(--text); font-size: 15px; line-height: 1.55; }
 .honesto strong { color: var(--text); }
 
@@ -186,7 +182,7 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
 .proximos li::before { content: counter(p) " · "; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 /* final */
-.final { margin-top: clamp(96px, 12vh, 144px); margin-bottom: 64px; padding: clamp(32px, 4vw, 72px); border-radius: 16px; background: #230e50; color: #fffef3; text-align: left;
+.final { margin-top: clamp(96px, 12vh, 144px); margin-bottom: 64px; padding: clamp(32px, 4vw, 72px); border-radius: var(--r-lg); background: #230e50; color: #fffef3; text-align: left;
   display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 48px; align-items: center; }
 .final-capa { width: 100%; height: auto; display: block; border-radius: 12px; }
 :root[data-theme="dark"] .final { background: #2a1556; }

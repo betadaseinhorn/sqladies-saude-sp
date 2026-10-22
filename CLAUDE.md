@@ -114,7 +114,7 @@ Adding a question touches several places: `CATALOGO`, `FILTROS`, `SEGUINTES` (al
   - Only the Início question box and "Fazer outra pergunta" stay centered, as the user asked.
   - Loading is a skeleton (`.esqueleto`), not a spinner.
   - Motion follows Emil Kowalski's skills (`find-animation-opportunities`, `animate`, `review-animations`).
-    - Tokens: `--ease-out` (cubic-bezier(0.23, 1, 0.32, 1)) for entering and leaving, `--ease-in-out` for movement on screen.
+    - Token: `--ease-out` (cubic-bezier(0.23, 1, 0.32, 1)) for entering and leaving. If something has to move across the screen, add `--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1)`.
     - Animate only `transform` and `opacity`, plus height on `details.tbl` and `display` with `allow-discrete` on the menu.
     - Never animate frequent actions: switching tabs, arrow keys, hover. Data (KPIs, Plotly charts) is never animated for style.
     - Entrance classes are temporary (`marcarEntrada()`), so animations do not replay when a hidden tab is shown again.

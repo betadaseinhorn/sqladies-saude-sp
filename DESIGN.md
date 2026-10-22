@@ -88,12 +88,13 @@ rounded:
   md: "12px"
   lg: "16px"
   bubble: "18px 18px 4px 18px"
-  composer: "22px"
+  composer: "24px"
+  glass: "24px"
   pill: "999px"
 spacing:
-  container: "1200px"
-  dash: "1240px"
-  gutter: "24px"
+  container: "1600px"
+  dash: "1600px"
+  gutter: "clamp(16px, 4vw, 64px)"
   section: "112px"
 components:
   button-primary:

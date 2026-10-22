@@ -7,10 +7,11 @@
 > Por baixo, a demonstração usa SQLite.
 
 **DataCare_** ("Transformando dados em cuidado e decisão") é a solução do grupo **SQLadies** no Challenge Oracle + FIAP.
-A identidade visual (violeta `#7E3EE0`, roxo profundo `#230E50`, lilás e creme) vem da capa do grupo. A paleta dos gráficos foi
-validada para daltonismo nos temas claro e escuro (`static/css/base.css`); o logo e o ícone ficam em `static/marca/`.
+A identidade visual (violeta `#7E3EE0`, roxo profundo `#230E50`, lilás e creme) vem da capa do grupo. Os gráficos usam só
+as cores da marca (violeta, laranja e lilás), validadas para daltonismo nos temas claro e escuro (`static/css/base.css`).
+O logo é o texto "DataCare_"; o favicon e a capa ficam em `static/marca/`.
 
-Página web com uma aba **Início** (caixa de pergunta centralizada): o usuário escolhe ou digita uma pergunta e uma
+Página web com uma aba **Início** (caixa de pergunta no topo): o usuário escolhe ou digita uma pergunta e uma
 **nova aba** é aberta com o dashboard gerado na hora: KPIs, **alertas (Aceitável / Alerta / Crítico)**, gráficos
 interativos, principais achados, tabela e a **query em Oracle SQL** que produz os dados.
 Os dados são as internações SUS dos **645 municípios do estado de São Paulo (2024–2025)**, cruzadas com o cadastro de hospitais, leitos e UBS.
@@ -36,7 +37,7 @@ python pipeline.py                # 1ª vez: baixa cerca de 550 MB e monta data/
 uvicorn app.main:app              # landing em http://localhost:8000 · aplicação em /app
 ```
 
-Depois do pipeline, o app não usa a internet: o Plotly está em `static/vendor/` e as fontes são do sistema.
+Depois do pipeline, o app não usa a internet: o Plotly e as fontes (Geist) estão em `static/vendor/`.
 
 Desempenho: como o banco é somente leitura, cada dashboard (pergunta + filtros) fica em cache. Ao subir, o servidor
 pré-monta em segundo plano as 18 perguntas do catálogo. As respostas e os arquivos estáticos saem compactados (gzip).
@@ -101,14 +102,16 @@ O contexto do produto para o design está em `PRODUCT.md`. A tipografia é a Gei
 
 ## Interface: aba Início e abas de dashboard
 
-- **Início**: aba fixa (não pode ser fechada) com a caixa de pergunta no centro e o catálogo de perguntas em sugestões.
-- **Abas de dashboard**: cada pergunta abre uma aba com o texto digitado como título. O ponto colorido na aba indica a
-  pior situação dos alertas daquele dashboard. As abas podem ser fechadas (×, clique do meio ou tecla Delete) e são
-  reabertas ao recarregar a página.
+- **Início**: aba fixa (não pode ser fechada) com a caixa de pergunta no topo, o catálogo de perguntas por categoria e,
+  embaixo, "Continuar de onde parou" e "Sobre os dados".
+- **Abas de dashboard**: cada pergunta abre uma aba (no estilo de pasta) com o texto digitado como título. O ícone da
+  aba (✓ ! ✕) indica a pior situação dos alertas daquele dashboard. As abas podem ser fechadas (×, clique do meio ou
+  tecla Delete), trocadas pelas setas do teclado e são reabertas ao recarregar a página. O menu ˅ no fim da barra
+  lista todas as abas abertas, com a situação e o número de perguntas de cada uma.
 - **Conversa na aba**: cada pergunta aparece num balão, seguido do dashboard que responde a ela. No fim da aba
   há uma caixa para fazer outra pergunta, com 2–3 sugestões de continuação (`SEGUINTES` em `app/questions.py`); o
   novo balão e o novo dashboard aparecem logo abaixo. A partir da 2ª pergunta, uma faixa fixa "Perguntas: 1 · 2 · 3"
-  leva de volta a cada uma. A bolinha da aba mostra a pior situação entre os dashboards dela.
+  leva de volta a cada uma. O ícone da aba mostra a pior situação entre os dashboards dela.
 - **Filtros editáveis**: cada dashboard tem uma barra com os filtros que ele usa (ano, DRS, causa, caráter,
   município, top N; lista em `FILTROS`, `app/questions.py`). Mudar um filtro refaz só aquele dashboard, no mesmo lugar,
   e a query Oracle acompanha. Os valores são validados por lista branca (`validar_params`, `app/matcher.py`).
@@ -120,6 +123,9 @@ O contexto do produto para o design está em `PRODUCT.md`. A tipografia é a Gei
   `static/vendor/sp_municipios.geojson` (gerada por `etl/build_mapa.py`) e o mapa-base do Plotly em
   `static/vendor/topojson/`, então os mapas funcionam offline. Com filtro de DRS, o mapa mostra só a região.
 - **Menu de abas fixo**: a barra de abas fica sempre visível no topo, mesmo no fim de abas longas.
+- **Leitura e movimento**: cada dashboard fica numa coluna de vidro fosco sobre o degradê da marca; as entradas
+  (dashboard novo, menu, filtros, tabela, "Copiar") têm animações curtas, que viram só um esmaecer com
+  "reduzir movimento" ativado no sistema. Se a pergunta não for reconhecida, a aba mostra perguntas parecidas.
 - **Conteúdo da aba**: cabeçalho e KPIs → **Situação** (alertas) → achados → **Por que essa pergunta importa** → gráficos → tabela → **Query SQL (Oracle)**.
 
 ### Por que essa pergunta importa
