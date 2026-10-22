@@ -101,6 +101,10 @@ Adding a question touches several places: `CATALOGO`, `FILTROS`, `SEGUINTES` (al
   - Status icons are SVG (`ICONE_NIVEL`), never ✓/!/✕ characters.
   - KPIs, alerts and the "Por que essa pergunta importa" section are single panels with dividers, not one card per item.
   - Shape tokens: `--r-*`, `--fs-*`, `--dur`, `--ease`.
+  - Layout tokens: `--gutter` (fluid margin), `--wide` (1600px content limit) and `--measure` (68ch).
+  - Pages use the width of the screen; avoid fixed narrow centered columns. On the landing, blocks are padded with `--pad-x`.
+  - The app's Início is a grid: the question box in the main column, side panels, and the catalog in category columns.
+  - Only "Fazer outra pergunta" stays centered, as the user asked.
   - Loading is a skeleton (`.esqueleto`), not a spinner.
 
 ## Testing notes

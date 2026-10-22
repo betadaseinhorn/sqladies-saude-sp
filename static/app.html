@@ -34,22 +34,35 @@
   <main id="panels" tabindex="-1">
     <section class="panel home-panel" id="panel-inicio" role="tabpanel" aria-labelledby="tab-inicio">
       <div class="home">
-        <span class="brand-sub">Internações SUS · Estado de São Paulo · 2024–2025</span>
-        <h1>O que você quer saber sobre a saúde em SP?</h1>
-        <form class="composer" id="composer" autocomplete="off">
-          <textarea id="pergunta" rows="1" maxlength="300"
-                    placeholder="Ex.: hospitais de Campinas em 2025"
-                    aria-label="Sua pergunta"></textarea>
-          <button type="submit" class="send" id="send" aria-label="Enviar pergunta">
-            <svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </button>
-        </form>
-        <div class="feedback" id="feedback" aria-live="polite"></div>
-        <section class="continuar" id="continuar" aria-labelledby="continuar-titulo" hidden>
-          <h2 id="continuar-titulo">Continuar de onde parou</h2>
-          <div class="chips" id="continuar-lista"></div>
-        </section>
-        <p class="home-hint">Clique numa sugestão para colocá-la na caixa. Cada pergunta abre uma aba com o dashboard.</p>
+        <div class="home-principal">
+          <span class="brand-sub">Internações SUS · Estado de São Paulo · 2024–2025</span>
+          <h1>O que você quer saber sobre a saúde em SP?</h1>
+          <form class="composer" id="composer" autocomplete="off">
+            <textarea id="pergunta" rows="1" maxlength="300"
+                      placeholder="Ex.: hospitais de Campinas em 2025"
+                      aria-label="Sua pergunta"></textarea>
+            <button type="submit" class="send" id="send" aria-label="Enviar pergunta">
+              <svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </form>
+          <div class="feedback" id="feedback" aria-live="polite"></div>
+          <p class="home-hint">Escreva do seu jeito ou escolha uma pergunta abaixo. Cada pergunta abre uma aba com o dashboard.</p>
+        </div>
+        <aside class="home-lado" aria-label="Atalhos e dados">
+          <section class="continuar" id="continuar" aria-labelledby="continuar-titulo" hidden>
+            <h2 id="continuar-titulo">Continuar de onde parou</h2>
+            <div class="chips" id="continuar-lista"></div>
+          </section>
+          <section class="sobre-dados" aria-labelledby="sobre-titulo">
+            <h2 id="sobre-titulo">Sobre os dados</h2>
+            <dl>
+              <div><dt>Internações</dt><dd>SIH/SUS · 2024–2025</dd></div>
+              <div><dt>Estabelecimentos e leitos</dt><dd>CNES</dd></div>
+              <div><dt>População</dt><dd>IBGE · 645 municípios</dd></div>
+            </dl>
+            <a class="sobre-link" href="/">Conhecer o DataCare_ →</a>
+          </section>
+        </aside>
         <div class="catalogo" id="catalogo"></div>
         <footer class="home-foot">
           <span class="marca-texto"><span class="m-data">Data</span><span class="m-care">Care</span><span class="m-u">_</span></span>

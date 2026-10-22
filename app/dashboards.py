@@ -112,7 +112,7 @@ def mapa_mun(title: str, df: pd.DataFrame, col: str, hover: str, *, subtitle: st
                    "customdata": [categorias[int(v)] for v in d[col]]})
     else:
         tr.update({"scale": "sequential", "zmin": _num(d[col].min()), "zmax": _num(d[col].quantile(0.97))})
-    return chart(title, traces + [tr] + (extras or []), subtitle=subtitle, height=460, wide=True,
+    return chart(title, traces + [tr] + (extras or []), subtitle=subtitle, height=540, wide=True,
                  layout={"geo": {"fitbounds": "locations", "visible": False},
                          "margin": {"l": 0, "r": 0, "t": 4, "b": 0}})
 

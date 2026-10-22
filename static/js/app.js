@@ -532,14 +532,15 @@
         el("span", { text: "Limites configuráveis em app/alerts.py." })));
     }
 
+    const analise = el("div", { class: "analise" });
     if (d.insights && d.insights.length) {
-      root.append(el("h3", { class: "section-title", text: "O que os dados mostram" }));
-      root.append(el("div", { class: "insights" }, el("ul", {}, d.insights.map((t) => el("li", { text: t })))));
+      analise.append(el("div", { class: "analise-col" }, el("h3", { class: "section-title", text: "O que os dados mostram" }),
+        el("div", { class: "insights" }, el("ul", {}, d.insights.map((t) => el("li", { text: t }))))));
     }
     if (d.relevancia) {
       const r = d.relevancia;
-      root.append(el("h3", { class: "section-title", text: "Por que essa pergunta importa" }));
-      root.append(el("div", { class: "relev" },
+      analise.append(el("div", { class: "analise-col" }, el("h3", { class: "section-title", text: "Por que essa pergunta importa" }),
+        el("div", { class: "relev" },
         el("div", { class: "relev-bloco" }, el("h4", { text: "O que tem de importante nesta pergunta" }),
           el("p", { text: r.importancia })),
         el("div", { class: "relev-bloco" }, el("h4", { text: "Problemas identificados" }),
@@ -549,8 +550,9 @@
             : null,
           el("p", { class: "relev-resumo", text: r.resumo })),
         el("div", { class: "relev-bloco" }, el("h4", { text: "O que poderia ser feito" }),
-          el("ol", {}, r.acoes.map((t) => el("li", { text: t }))))));
+          el("ol", {}, r.acoes.map((t) => el("li", { text: t })))))));
     }
+    if (analise.childNodes.length) root.append(analise);
     const charts = el("div", { class: "charts" });
     for (const c of d.charts || []) {
       const plot = el("div", { class: "plot", role: "img",

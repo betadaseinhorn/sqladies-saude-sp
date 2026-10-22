@@ -72,6 +72,7 @@
     </section>
 
     <section class="numeros" aria-label="O que está no banco de dados">
+      <div class="numeros-in">
       <dl>
         <div><dt>internações analisadas</dt><dd data-resumo="internacoes">5,7 mi</dd></div>
         <div><dt>municípios de São Paulo</dt><dd data-resumo="municipios">645</dd></div>
@@ -79,6 +80,7 @@
         <div><dt>análises prontas</dt><dd data-resumo="analises">18</dd></div>
       </dl>
       <p class="numeros-nota">Dados reais de <span data-resumo="periodo">2024–2025</span>, consultados agora no banco desta demonstração.</p>
+      </div>
     </section>
 
     <!-- --------------------------------------------------------- problema -->
@@ -95,37 +97,37 @@
     </section>
 
     <!-- ---------------------------------------------------- como funciona -->
-    <section class="secao" id="como-funciona" aria-labelledby="como-titulo">
+    <section class="secao banda" id="como-funciona" aria-labelledby="como-titulo">
       <div class="secao-cab">
         <h2 id="como-titulo">Da pergunta à decisão, sem escrever SQL.</h2>
         <p>Quem gere não precisa saber programar. O DataCare_ entende a pergunta, consulta as bases públicas unificadas e devolve um dashboard que já diz onde está o problema e o que pode ser feito.</p>
       </div>
-      <ol class="passos">
-        <li>
-          <h3>Pergunte</h3>
-          <p>Em português, do jeito que você falaria: um município, uma DRS, um ano ou uma causa de internação.</p>
-          <div class="passo-visual pv-pergunta" aria-hidden="true"><span>Sazonalidade da dengue entre as DRS em 2025</span><i></i></div>
-        </li>
-        <li>
-          <h3>O DataCare_ consulta os dados</h3>
-          <p>A pergunta vira uma consulta SQL sobre internações, leitos e população. A query aparece em cada dashboard.</p>
-          <pre class="passo-visual pv-sql" aria-hidden="true"><code><span class="kw">SELECT</span> m.drs_nome, a.mes_inter,
-       <span class="fn">SUM</span>(a.internacoes) <span class="kw">AS</span> n
-  <span class="kw">FROM</span> agg_mensal_hosp a
-  <span class="kw">JOIN</span> dim_municipio m <span class="kw">ON</span> …
- <span class="kw">WHERE</span> a.cap_cid = <span class="str">'I'</span>
- <span class="kw">GROUP BY</span> m.drs_nome, a.mes_inter</code></pre>
-        </li>
-        <li>
-          <h3>Decida com alertas e ações</h3>
-          <p>Cada indicador é classificado em Aceitável, Alerta ou Crítico, com o motivo e ações sugeridas.</p>
-          <ul class="passo-visual pv-alertas" aria-hidden="true">
-            <li><b class="selo st-critico">Crítico</b>Maior ocupação estimada<em>129%</em></li>
-            <li><b class="selo st-alerta">Alerta</b>Hospitais acima de 85%<em>13%</em></li>
-            <li><b class="selo st-aceitavel">Aceitável</b>Ocupação mediana<em>56%</em></li>
-          </ul>
-        </li>
-      </ol>
+      <div class="como">
+        <ol class="passos">
+          <li>
+            <h3>Pergunte</h3>
+            <p>Em português, do jeito que você falaria: um município, uma DRS, um ano ou uma causa de internação.</p>
+          </li>
+          <li>
+            <h3>O DataCare_ consulta os dados</h3>
+            <p>A pergunta vira uma consulta SQL sobre internações, leitos e população. A query aparece em cada dashboard.</p>
+            <pre class="pv-sql" aria-hidden="true"><code><span class="kw">SELECT</span> m.nome, <span class="fn">SUM</span>(a.internacoes) <span class="kw">AS</span> n
+  <span class="kw">FROM</span> agg_mensal_res a
+  <span class="kw">JOIN</span> dim_municipio m <span class="kw">ON</span> m.cod_mun = a.mun_res
+ <span class="kw">GROUP BY</span> m.nome</code></pre>
+          </li>
+          <li>
+            <h3>Decida com alertas e ações</h3>
+            <p>Cada indicador vira Aceitável, Alerta ou Crítico, com o motivo, gráficos, mapa e ações sugeridas.</p>
+          </li>
+        </ol>
+        <figure class="janela como-tela">
+          <div class="janela-barra" aria-hidden="true"><i></i><i></i><i></i><span>Os 20 municípios com mais internações por habitante</span></div>
+          <img class="so-claro" src="/static/marca/graficos-claro.webp" width="1631" height="1047" loading="lazy"
+               alt="Gráficos reais do DataCare_: os 20 municípios com mais internações por 1.000 habitantes, liderados por Cajuru (171,4), e a taxa de internação comparada à população">
+          <img class="so-escuro" src="/static/marca/graficos-escuro.webp" width="1631" height="1047" loading="lazy" alt="" aria-hidden="true">
+        </figure>
+      </div>
       <p class="honesto"><strong>Transparência:</strong> no projeto entregue à Oracle, a tradução da pergunta em SQL é feita pelo Oracle Select AI sobre o Autonomous Database. Esta demonstração funciona offline e reconhece as perguntas a partir de um catálogo de 18 análises, sem modelo de linguagem.</p>
     </section>
 

@@ -41,6 +41,8 @@
   --r-sm: 8px; --r-md: 12px; --r-lg: 16px;
   --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-lg: 16px; --fs-xl: 22px;
   --dur: 160ms; --ease: cubic-bezier(.2, .8, .2, 1);
+  /* layout: margem fluida, largura máxima de conteúdo e medida de leitura */
+  --gutter: clamp(16px, 4vw, 64px); --wide: 1600px; --measure: 68ch;
   --tabbar-h: 47px;
   --font: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-marca: "DejaVu Sans", Verdana, system-ui, sans-serif;
