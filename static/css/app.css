@@ -52,9 +52,9 @@ html { height: 100%; scroll-padding-top: calc(var(--tabbar-h) + 56px); }
 .home-panel { min-height: calc(100vh - var(--tabbar-h)); min-height: calc(100dvh - var(--tabbar-h)); }
 .home { width: 100%; max-width: var(--wide); margin: 0 auto; padding: clamp(24px, 6vh, 72px) 0 24px;
   display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; align-items: start; }
-/* a pergunta fica no meio da primeira tela; o topo dos painéis aparece embaixo, indicando que há mais ao rolar */
+/* a pergunta fica perto do meio da primeira tela; os painéis e o catálogo vêm logo abaixo dela */
 .home-principal { min-width: 0; width: 100%; max-width: 820px; margin-inline: auto; text-align: center;
-  min-height: calc(100vh - var(--tabbar-h) - 200px); display: flex; flex-direction: column; justify-content: center; }
+  padding-top: max(0px, calc((100vh - var(--tabbar-h) - 380px) / 2)); }
 .home-principal .feedback { text-align: left; }
 .home-principal h1 { margin: 6px 0 20px; font-size: clamp(26px, 2.6vw, 36px); letter-spacing: -0.03em; line-height: 1.15; font-weight: 650; text-wrap: balance; }
 .home-lado { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px clamp(24px, 3vw, 48px); min-width: 0; align-items: start; }
