@@ -216,7 +216,28 @@
     return { lon: [c[0] - px, c[1] + px], lat: [c[2] - py, c[3] + py] };
   }
 
+  // Plotly (4,3 MB) só é carregado quando há gráfico a desenhar: o Início aparece sem esperar por ele
+  let plotlyPronto = null;
+  function carregarPlotly() {
+    if (window.Plotly) return Promise.resolve();
+    if (!plotlyPronto) {
+      plotlyPronto = new Promise((ok, falha) => {
+        const s = el("script", { src: "/static/vendor/plotly.min.js" });
+        s.onload = ok;
+        s.onerror = () => { plotlyPronto = null; s.remove(); falha(new Error("plotly")); };
+        document.head.append(s);
+      });
+    }
+    return plotlyPronto;
+  }
+
   function drawChart(div, spec) {
+    if (!window.Plotly) {
+      carregarPlotly().then(() => drawChart(div, spec), () => {
+        div.replaceChildren(el("p", { class: "card-sub", text: "Não consegui carregar os gráficos. Recarregue a página." }));
+      });
+      return;
+    }
     if (!GEO && spec.traces.some((t) => t.geojson === "sp")) {
       div.replaceChildren(el("p", { class: "card-sub", text: "Não consegui carregar o mapa dos municípios." }));
       return;
@@ -268,7 +289,7 @@
   function desenharAba(a) {
     if (!a) return;
     const cs = graficos(a);
-    if (a.drawn) { cs.forEach(([div]) => Plotly.Plots.resize(div)); return; }
+    if (a.drawn) { if (window.Plotly) cs.forEach(([div]) => Plotly.Plots.resize(div)); return; }
     cs.forEach(([div, spec]) => drawChart(div, spec));
     a.drawn = true;
   }
@@ -345,10 +366,11 @@
     const tema = document.documentElement.dataset.theme;
     const fechados = [...t.dash.querySelectorAll("details")].filter((d) => !d.open);
     fechados.forEach((d) => { d.open = true; });
+    try { await carregarPlotly(); } catch (e) { /* imprime sem gráficos */ }
     document.documentElement.dataset.theme = "light"; // papel: sempre tema claro
     document.body.classList.add("modo-impressao");
     t.el.classList.add("imprimir");
-    await Promise.all(t.charts.map(([div, spec]) => {
+    if (window.Plotly) await Promise.all(t.charts.map(([div, spec]) => {
       drawChart(div, spec);
       return Plotly.relayout(div, { width: 680 });
     }));
@@ -357,7 +379,7 @@
       if (tema) document.documentElement.dataset.theme = tema; else delete document.documentElement.dataset.theme;
       document.body.classList.remove("modo-impressao");
       t.el.classList.remove("imprimir");
-      t.charts.forEach(([div, spec]) => { drawChart(div, spec); Plotly.Plots.resize(div); });
+      t.charts.forEach(([div, spec]) => { drawChart(div, spec); if (window.Plotly) Plotly.Plots.resize(div); });
     };
     window.addEventListener("afterprint", fim, { once: true });
     window.print();
@@ -571,7 +593,7 @@
     try {
       const res = await perguntar(t.text, t.qid, params);
       if (res.erro || !res.matched) throw new Error(res.erro || "Não consegui aplicar os filtros.");
-      t.charts.forEach(([div]) => Plotly.purge(div));
+      if (window.Plotly) t.charts.forEach(([div]) => Plotly.purge(div));
       t.charts = [];
       t.params = res.params || {};
       t.nivel = res.dashboard.status_geral;
@@ -851,7 +873,7 @@
     if (!a) return;
     const ids = [...abas.keys()];
     const pos = ids.indexOf(id);
-    graficos(a).forEach(([div]) => Plotly.purge(div));
+    if (window.Plotly) graficos(a).forEach(([div]) => Plotly.purge(div));
     if (a.observer) a.observer.disconnect();
     a.tab.remove();
     a.panel.remove();
@@ -1147,6 +1169,9 @@
       const a = [...abas.values()].find((x) => x.text === doLink);
       if (a) ativar(a.id, { historico: "replace" }); else enviar(doLink, null);
     }
+    // com o Início na tela, o Plotly vem em segundo plano: o primeiro dashboard não espera o download
+    const ocioso = window.requestIdleCallback || ((f) => setTimeout(f, 300));
+    ocioso(() => carregarPlotly().catch(() => {}));
   }
   init();
 })();

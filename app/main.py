@@ -97,6 +97,12 @@ def questions():
 
 @app.get("/api/filters")
 def filters():
+    """Opções da barra de filtros (calculadas uma vez; o banco é somente leitura)."""
+    return _filtros()
+
+
+@lru_cache(maxsize=1)
+def _filtros() -> dict:
     return {"anos": db.anos(),
             "drs": db.drs().to_dict("records"),
             "municipios": db.municipios()[["cod_mun", "nome", "drs_num"]].to_dict("records"),

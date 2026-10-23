@@ -34,12 +34,12 @@ This repository is a **demonstrative, offline adaptation** of the work the SQLad
 
 **This demonstration:**
 - FastAPI, plain HTML/CSS/JS and SQLite;
-- no LLM: questions are matched to a catalog of 18 analyses;
+- no LLM: questions are matched to a catalog of 18 full analyses and 3 simple questions;
 - it runs fully offline.
 
 ## Capabilities and Constraints
 **What the demonstration does:**
-- natural-language questions mapped to 18 analyses in 5 categories: overview, seasonality, rankings and comparisons, capacity, and patterns and factors;
+- natural-language questions mapped to 18 analyses in 5 categories plus 3 simple questions (one table, one chart or one map): overview, seasonality, rankings and comparisons, capacity, and patterns and factors;
 - per-tab conversation turns with follow-up suggestions;
 - editable filters;
 - alerts, "Por que essa pergunta importa", Plotly charts and municipal maps;

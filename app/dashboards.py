@@ -153,7 +153,7 @@ def _list(s) -> list:
     return [_num(v) for v in s]
 
 
-def bar_layout(n: int, **extra) -> dict:
+def bar_layout(**extra) -> dict:
     lay = {"yaxis": {"autorange": "reversed", "automargin": True},
            "xaxis": {"automargin": True}, "margin": {"l": 10, "r": 60}}
     lay.update(extra)
@@ -298,11 +298,11 @@ def visao_geral(p: dict) -> dict:
         chart("Principais causas (capítulo CID-10)", [bar_h(
             caps["cap_nome"], caps["n"], text=[fmt_compact(v) for v in caps["n"]],
             hover="%{y}: %{x:,.0f}<extra></extra>")],
-              layout=bar_layout(len(caps)), height=bar_height(len(caps))),
+              layout=bar_layout(), height=bar_height(len(caps))),
         chart("Internações por DRS", [bar_h(
             drs["drs_nome"], drs["n"], text=[fmt_compact(v) for v in drs["n"]],
             hover="%{y}: %{x:,.0f}<extra></extra>")],
-              layout=bar_layout(len(drs)), height=bar_height(len(drs))),
+              layout=bar_layout(), height=bar_height(len(drs))),
     ]
     top = caps.iloc[0]
     pico = mensal.loc[mensal["n"].idxmax()]
@@ -348,11 +348,11 @@ def custos(p: dict) -> dict:
         chart("Valor total pago por causa", [bar_h(
             top["cap_nome"], top["v"], text=[fmt_brl(v) for v in top["v"]],
             hover="%{y}: R$ %{x:,.0f}<extra></extra>")],
-              layout=bar_layout(len(top)), height=bar_height(len(top))),
+              layout=bar_layout(), height=bar_height(len(top))),
         chart("Valor médio por internação", [bar_h(
             medio["cap_nome"], medio["medio"], slot=1, text=[fmt_brl(v) for v in medio["medio"]],
             hover="%{y}: R$ %{x:,.0f}<extra></extra>")],
-              layout=bar_layout(len(medio)), height=bar_height(len(medio))),
+              layout=bar_layout(), height=bar_height(len(medio))),
     ]
     insights = [
         f"{top.iloc[0]['cap_nome']} e {top.iloc[1]['cap_nome']} somam "
@@ -502,7 +502,7 @@ def sazonal_drs(p: dict) -> dict:
         chart("Amplitude sazonal por DRS (pico − vale)", [bar_h(
             amp.index, amp.values, text=[fmt_dec(v, 0) + " p.p." for v in amp.values],
             hover="%{y}: %{x:.1f} p.p.<extra></extra>")],
-              layout=bar_layout(len(amp)), height=bar_height(len(amp))),
+              layout=bar_layout(), height=bar_height(len(amp))),
     ]
     insights = [
         f"O pico mais comum entre as DRS é {moda} ({(picos['pico'] == moda).sum()} de {len(picos)} DRS).",
@@ -559,7 +559,7 @@ def sazonal_causas(p: dict) -> dict:
         chart("Amplitude sazonal por causa", [bar_h(
             amp.index, amp.values, text=[fmt_dec(v, 0) + " p.p." for v in amp.values],
             hover="%{y}: %{x:.1f} p.p.<extra></extra>")],
-              layout=bar_layout(len(amp)), height=bar_height(len(amp))),
+              layout=bar_layout(), height=bar_height(len(amp))),
     ]
     picos = {k: MESES_LONGOS[int(idx.loc[k].idxmax()) - 1] for k in top3}
     insights = [f"{k}: pico em {picos[k]} ({signed((idx.loc[k].max() - 1) * 100, 0)}%) e vale em "
@@ -606,7 +606,7 @@ def sazonal_cap_regiao(p: dict) -> dict:
             pk["drs"], pk["pico_pct"], slot=1,
             text=[f"{signed(v, 0)}% em {m}" for v, m in zip(pk["pico_pct"], pk["pico"])],
             hover="%{y}: %{x:+.1f}%<extra></extra>")],
-              layout=bar_layout(len(pk), xaxis={"ticksuffix": "%"}), height=bar_height(len(pk))),
+              layout=bar_layout(xaxis={"ticksuffix": "%"}), height=bar_height(len(pk))),
         _heat(idx, f"Índice sazonal de {nome.lower()} por DRS"),
     ]
     pmes = MESES_LONGOS[int(i_est.idxmax()) - 1]
@@ -664,7 +664,7 @@ def ranking_municipios(p: dict) -> dict:
         top["nome"], top["taxa"], text=[fmt_dec(v, 1) for v in top["taxa"]],
         hover="%{y}: %{x:.1f} por 1.000 hab.<extra></extra>")],
         subtitle=f"Municípios com {fmt_int(min_pop)}+ habitantes · linha = média {ref} ({fmt_dec(taxa_est, 1)})",
-        layout=bar_layout(len(top), shapes=[_vline(taxa_est)]), height=bar_height(len(top)))]
+        layout=bar_layout(shapes=[_vline(taxa_est)]), height=bar_height(len(top)))]
     charts.append(chart("Taxa de internação × população", [
         {"type": "scatter", "mode": "markers", "name": "Municípios", "x": _list(elig["pop"]),
          "y": _list(elig["taxa"]), "text": list(elig["nome"]), "colorRole": "muted",
@@ -755,7 +755,7 @@ def ranking_hospitais(p: dict) -> dict:
         [_curto(f"{n} ({m})") for n, m in zip(top["nome"], top["municipio"])], top["n_ano"],
         text=[fmt_compact(v) for v in top["n_ano"]],
         hover="%{y}: %{x:,.0f} internações/ano<extra></extra>")],
-        layout=bar_layout(len(top)), height=bar_height(len(top)), wide=True)]
+        layout=bar_layout(), height=bar_height(len(top)), wide=True)]
     insights = [
         f"Os {top_n} maiores hospitais respondem por {fmt_pct(share, 0)} das internações "
         f"entre {fmt_int(len(d))} hospitais.",
@@ -790,7 +790,7 @@ def ranking_permanencia(p: dict) -> dict:
             text=[fmt_dec(v, 1) + " d" for v in top["perm"]],
             hover="%{y}: %{x:.1f} dias<extra></extra>")],
               subtitle=f"Hospitais com {fmt_int(min_n)}+ internações/ano · linha = média ({fmt_dec(media, 1)} dias)",
-              layout=bar_layout(len(top), shapes=[_vline(media)]), height=bar_height(len(top)), wide=True),
+              layout=bar_layout(shapes=[_vline(media)]), height=bar_height(len(top)), wide=True),
         chart("Volume × permanência média", [
             {"type": "scatter", "mode": "markers", "name": "Hospitais", "x": _list(elig["n_ano"]),
              "y": _list(elig["perm"]), "text": list(elig["nome"]), "colorRole": "muted",
@@ -884,7 +884,7 @@ def comparar_municipios(p: dict) -> dict:
     charts = [
         chart("Internações por 1.000 habitantes, mês a mês", linhas, wide=True),
         chart("Perfil de causas (% das internações)", barras_cap,
-              layout=bar_layout(8, barmode="group", xaxis={"ticksuffix": "%"}), height=420),
+              layout=bar_layout(barmode="group", xaxis={"ticksuffix": "%"}), height=420),
         chart("Faixa etária dos internados (%)", barras_faixa,
               layout={"barmode": "group", "yaxis": {"ticksuffix": "%"}}, height=420),
     ]
@@ -943,18 +943,18 @@ def perfil_municipio(p: dict) -> dict:
             "hovertemplate": "%{x}: %{y:,.0f}<extra></extra>"}], layout={"yaxis": {"rangemode": "tozero"}}, wide=True),
         chart("Principais causas", [bar_h(caps["cap_nome"], caps["n"], text=[fmt_int(v) for v in caps["n"]],
                                           hover="%{y}: %{x:,.0f}<extra></extra>")],
-              layout=bar_layout(len(caps)), height=bar_height(len(caps))),
+              layout=bar_layout(), height=bar_height(len(caps))),
     ]
     if len(hosp):
         charts.append(chart("Hospitais do município (internações/ano)", [bar_h(
             [_curto(n, 36) for n in hosp["nome"]], hosp["n_ano"], slot=2,
             text=[fmt_int(v) for v in hosp["n_ano"]], hover="%{y}: %{x:,.0f}/ano<extra></extra>")],
-            layout=bar_layout(len(hosp)), height=bar_height(len(hosp))))
+            layout=bar_layout(), height=bar_height(len(hosp))))
     if len(destinos):
         charts.append(chart("Para onde vão os residentes internados fora", [bar_h(
             destinos["nome"], destinos["n"], slot=1, text=[fmt_int(v) for v in destinos["n"]],
             hover="%{y}: %{x:,.0f} internações<extra></extra>")],
-            layout=bar_layout(len(destinos)), height=bar_height(len(destinos))))
+            layout=bar_layout(), height=bar_height(len(destinos))))
     taxa_est = db.scalar("SELECT SUM(int_res_ano) * 1000 / SUM(pop) FROM res_municipio")
     insights = [
         f"Taxa de {fmt_dec(x['taxa'], 1)} internações por 1.000 hab./ano "
@@ -993,7 +993,7 @@ def polos_atracao(p: dict) -> dict:
             text=[f"{fmt_compact(v)} · {fmt_pct(pc, 0)}" for v, pc in zip(top["atraidos_ano"], top["pct_atraidos"])],
             hover="%{y}: %{x:,.0f}/ano<extra></extra>")],
               subtitle="Rótulo: volume anual · % do total de internações do município",
-              layout=bar_layout(len(top)), height=bar_height(len(top))),
+              layout=bar_layout(), height=bar_height(len(top))),
         mapa_mun("Mapa dos polos (bolha = pacientes de outros municípios por ano)", m, "pct_atraidos",
                  "%{z:.0f}% das internações são de pacientes de fora", legenda="% de fora",
                  subtitle="Cor: % das internações do município feitas por pacientes de outras cidades",
@@ -1043,7 +1043,7 @@ def capacidade_municipios(p: dict) -> dict:
             top["nome"], top["int_por_leito"], text=[fmt_dec(v, 0) for v in top["int_por_leito"]],
             hover="%{y}: %{x:.0f} internações por leito/ano<extra></extra>")],
               subtitle=f"Municípios com 20.000+ hab. e 20+ leitos SUS · linha = média {ref} ({fmt_dec(est, 0)})",
-              layout=bar_layout(len(top), shapes=[_vline(est)]), height=bar_height(len(top))),
+              layout=bar_layout(shapes=[_vline(est)]), height=bar_height(len(top))),
         chart("Leitos SUS × internações realizadas por ano", [
             {"type": "scatter", "mode": "markers", "name": "Municípios", "x": _list(elig["leitos_sus"]),
              "y": _list(elig["int_occ_ano"]), "text": list(elig["nome"]), "colorRole": "muted",
@@ -1103,7 +1103,7 @@ def ocupacao_hospitais(p: dict) -> dict:
             text=[fmt_pct(v, 0) for v in top["ocupacao_est"]],
             hover="%{y}: %{x:.0f}%<extra></extra>")],
               subtitle="Hospitais com 30+ leitos SUS · linha = 85%, referência usual de ocupação alta",
-              layout=bar_layout(len(top), shapes=[_vline(85)], xaxis={"ticksuffix": "%"}),
+              layout=bar_layout(shapes=[_vline(85)], xaxis={"ticksuffix": "%"}),
               height=bar_height(len(top)), wide=True),
         chart("Leitos SUS × ocupação estimada", [{
             "type": "scatter", "mode": "markers", "x": _list(h["leitos_sus"]), "y": _list(h["ocupacao_est"]),
@@ -1163,11 +1163,11 @@ def capacidade_drs(p: dict) -> dict:
             l10["drs_nome"], l10["leitos_10k"], text=[fmt_dec(v, 1) for v in l10["leitos_10k"]],
             hover="%{y}: %{x:.1f}<extra></extra>")],
               subtitle=f"Linha = estado ({fmt_dec(est_l10, 1)})",
-              layout=bar_layout(len(g), shapes=[_vline(est_l10)]), height=bar_height(len(g))),
+              layout=bar_layout(shapes=[_vline(est_l10)]), height=bar_height(len(g))),
         chart("Ocupação estimada dos leitos SUS", [bar_h(
             oc["drs_nome"], oc["ocup"], slot=1, text=[fmt_pct(v, 0) for v in oc["ocup"]],
             hover="%{y}: %{x:.0f}%<extra></extra>")],
-              layout=bar_layout(len(g), xaxis={"ticksuffix": "%"}), height=bar_height(len(g))),
+              layout=bar_layout(xaxis={"ticksuffix": "%"}), height=bar_height(len(g))),
         chart("Ocupação estimada mês a mês (estado)", [{
             "type": "scatter", "mode": "lines+markers", "x": [mes_label(x) for x in mens["mes_inter"]],
             "y": _list(mens["ocup"]), "colorSlot": 0,
